@@ -1,0 +1,37 @@
+{
+  "name": "教师课程表",
+  "packageName": "com.teacher.timetable",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "icon": "assets/icon.png",
+  "splash": "assets/splash.png",
+  "orientation": "portrait",
+  "staticFolder": "static",
+  "permissions": [
+    "INTERNET",
+    "WRITE_EXTERNAL_STORAGE",
+    "READ_EXTERNAL_STORAGE"
+  ],
+  "features": {
+    "widget": true,
+    "fileExport": true,
+    "localStorage": true,
+    "dataBackup": true
+  },
+  "widgetConfig": {
+    "widgetType": "information",
+    "updateInterval": 600000,
+    "widgetLayout": "flexible",
+    "widgetData": "currentCourses"
+  },
+  "android": {
+    "minSdk": 21,
+    "targetSdk": 33,
+    "installLocation": "auto"
+  },
+  "buildOptions": {
+    "enableR8": true,
+    "enableProguard": false,
+    "compileSdkVersion": 33
+  }
+}
