@@ -144,7 +144,7 @@
             border-radius: 8px;
             font-size: 0.85rem;
             resize: vertical;
-            min-height: 45px; /* 减小最小高度 */
+            min-height: 45px;
             background-color: #f8f9fa;
         }
         
@@ -255,7 +255,7 @@
             overflow: hidden;
             border: 1px solid #e0e0e0;
             margin-bottom: 12px;
-            max-height: 55vh; /* 减小高度，使滚动条更短 */
+            max-height: 70vh;
             overflow-y: auto;
         }
         
@@ -272,7 +272,6 @@
             min-height: 36px;
         }
         
-        /* 添加星期标题选中样式 */
         .weekday-cell {
             background-color: #4a6fa5;
             color: white;
@@ -720,7 +719,7 @@
             
             .timetable {
                 grid-template-columns: 45px repeat(5, 1fr);
-                max-height: 50vh; /* 移动端减小高度 */
+                max-height: 50vh;
             }
             
             .course-cell {
@@ -734,7 +733,7 @@
             }
             
             .notes-input {
-                min-height: 40px; /* 移动端进一步减小高度 */
+                min-height: 40px;
                 font-size: 0.8rem;
                 padding: 6px;
             }
@@ -742,7 +741,7 @@
         
         /* 优化滚动条样式 */
         .timetable::-webkit-scrollbar {
-            width: 3px; /* 减小滚动条宽度 */
+            width: 3px;
         }
         
         .timetable::-webkit-scrollbar-track {
@@ -785,14 +784,14 @@
                 <div class="notes-label">
                     <span id="currentNoteDay">周六 (12/27) 当天备注</span>
                 </div>
-                <textarea class="notes-input" id="dailyNotes" placeholder="输入当天的备注信息..."></textarea>
+                <label for="dailyNotes"></label><textarea class="notes-input" id="dailyNotes" placeholder="输入当天的备注信息..."></textarea>
             </div>
             
             <div class="search-section">
                 <div class="search-container">
                     <button class="search-toggle" id="searchToggle">🔍</button>
                     <div class="search-box" id="searchBox">
-                        <input type="text" class="search-input" id="searchNotes" placeholder="搜索备注...">
+                        <label for="searchNotes"></label><input type="text" class="search-input" id="searchNotes" placeholder="搜索备注...">
                         <span class="search-icon">🔍</span>
                     </div>
                 </div>
@@ -814,19 +813,19 @@
             <div class="modal-header" id="modalHeader">编辑课程</div>
             
             <div class="input-container">
-                <input type="text" class="modal-input" id="courseSubject" placeholder="科目" list="subjectHistory">
+                <label for="courseSubject"></label><input type="text" class="modal-input" id="courseSubject" placeholder="科目">
                 <button class="history-btn" id="subjectHistoryBtn">▼</button>
                 <div class="data-list" id="subjectHistoryList"></div>
             </div>
             
             <div class="input-container">
-                <input type="text" class="modal-input" id="courseClass" placeholder="班级" list="classHistory">
+                <label for="courseClass"></label><input type="text" class="modal-input" id="courseClass" placeholder="班级">
                 <button class="history-btn" id="classHistoryBtn">▼</button>
                 <div class="data-list" id="classHistoryList"></div>
             </div>
             
             <div class="input-container">
-                <input type="text" class="modal-input" id="courseRoom" placeholder="教室" list="roomHistory">
+                <label for="courseRoom"></label><input type="text" class="modal-input" id="courseRoom" placeholder="教室">
                 <button class="history-btn" id="roomHistoryBtn">▼</button>
                 <div class="data-list" id="roomHistoryList"></div>
             </div>
@@ -923,7 +922,7 @@
         <div class="modal-content">
             <div class="modal-header">设置学期起始日期</div>
             <div style="margin-bottom: 12px;">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500;">选择学期开始的日期：</label>
+                <label for="startDateInput" style="display: block; margin-bottom: 6px; font-weight: 500;">选择学期开始的日期：</label>
                 <input type="date" class="modal-input" id="startDateInput" value="2025-09-01">
             </div>
             <div class="modal-buttons">
@@ -935,21 +934,21 @@
 
     <script>
         // 全局变量
-        let currentWeek = 18; // 当前周（从18开始，2025-12-27是第18周）
-        const totalWeeks = 25; // 总周数
-        let selectedCell = null; // 当前选中的课程单元格
-        let selectedDay = -1; // 当前选中的星期（-1表示周末，0-4对应周一到周五）
-        let currentWeekType = 'even'; // 当前周类型（odd单周/even双周）
-        let isCurrentWeek = true; // 是否当前周
-        let searchResults = []; // 搜索结果
-        let currentDateData = {}; // 存储当前周的日期数据
-        let startDate = new Date('2025-09-01'); // 学期起始日期
-        let isSearchActive = false; // 搜索框是否激活
-        let selectedColor = 'black'; // 默认颜色
-        let longPressTimer = null; // 长按计时器
-        let isLongPress = false; // 是否长按状态
+        let currentWeek = 18;
+        const totalWeeks = 25;
+        let selectedCell = null;
+        let selectedDay = -1;
+        let currentWeekType = 'even';
+        let isCurrentWeek = true;
+        let searchResults = [];
+        let currentDateData = {};
+        let startDate = new Date('2025-09-01');
+        let isSearchActive = false;
+        let selectedColor = 'black';
+        let longPressTimer = null;
+        let isLongPress = false;
         
-        // 默认课程时间（7节课）
+        // 默认课程时间
         let classTimes = [
             "08:00-08:45",
             "08:55-09:40",
@@ -960,10 +959,10 @@
             "16:00-16:45"
         ];
         
-        // 课程数据 - 新的数据结构：按周存储 courseData[week][day][slot]
+        // 课程数据
         let courseData = {};
         
-        // 默认备注数据 - 按周和天存储
+        // 备注数据
         let notesData = {};
         
         // 历史记录数据
@@ -987,7 +986,7 @@
             // 设置事件监听器
             setupEventListeners();
             
-            // 清理现有时间格式（移除冒号）
+            // 清理现有时间格式
             cleanupTimeFormat();
         }
         
@@ -1012,27 +1011,25 @@
             
             // 计算当前是第几周
             const calculatedWeek = calculateCurrentWeek();
-            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const currentDayOfWeek = today.getDay();
             
-            // 如果是周末（周六或周日），显示下周的课程表
+            // 如果是周末，显示下周的课程表
             if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
-                // 显示下周的课程表
                 if (isCurrentWeek) {
                     currentWeek = calculatedWeek + 1;
                     if (currentWeek > totalWeeks) {
                         currentWeek = totalWeeks;
                     }
                 }
-                selectedDay = -1; // 标记为周末
+                selectedDay = -1;
             } else {
-                // 工作日，显示本周课程表
                 if (isCurrentWeek) {
                     currentWeek = calculatedWeek;
                 }
-                selectedDay = currentDayOfWeek - 1; // 转换为0-4（周一到周五）
+                selectedDay = currentDayOfWeek - 1;
             }
             
-            // 确定单双周（基于当前周数）
+            // 确定单双周
             currentWeekType = currentWeek % 2 === 1 ? 'odd' : 'even';
             document.getElementById('weekTypeDisplay').textContent = currentWeekType === 'odd' ? '单周' : '双周';
             
@@ -1055,14 +1052,10 @@
         // 计算当前日期对应的周数
         function calculateCurrentWeek() {
             const today = new Date();
-            // 计算从起始日期到今天的毫秒数差
             const timeDiff = today.getTime() - startDate.getTime();
-            // 计算天数差
             const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-            // 计算周数（向上取整，因为第一周从第一天开始）
             let weekNumber = Math.floor(dayDiff / 7) + 1;
             
-            // 确保周数在1-25之间
             weekNumber = Math.max(1, Math.min(weekNumber, totalWeeks));
             
             return weekNumber;
@@ -1080,7 +1073,6 @@
         function updateWeekTypeDisplay() {
             document.getElementById('weekTypeDisplay').textContent = currentWeekType === 'odd' ? '单周' : '双周';
             
-            // 更新课程表单双周显示
             document.querySelectorAll('.course-cell').forEach(cell => {
                 cell.className = cell.className.replace('odd-week', '').replace('even-week', '').trim();
                 cell.classList.add(currentWeekType === 'odd' ? 'odd-week' : 'even-week');
@@ -1094,7 +1086,6 @@
             const today = new Date();
             const currentDayOfWeek = today.getDay();
             
-            // 如果是周末，需要显示下周
             let targetWeek = calculatedWeek;
             if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
                 targetWeek = calculatedWeek + 1;
@@ -1104,13 +1095,11 @@
             }
             
             if (currentWeek === targetWeek) {
-                // 如果当前显示的是当天所在的周（或周末的下周）
                 currentWeekBtn.textContent = '本周';
                 currentWeekBtn.classList.remove('back-to-current');
                 currentWeekBtn.classList.add('current-week');
                 isCurrentWeek = true;
             } else {
-                // 如果当前显示的不是当天所在的周
                 currentWeekBtn.textContent = '回到本周';
                 currentWeekBtn.classList.remove('current-week');
                 currentWeekBtn.classList.add('back-to-current');
@@ -1121,7 +1110,7 @@
         // 更新备注标题
         function updateNotesHeader() {
             const today = new Date();
-            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const currentDayOfWeek = today.getDay();
             const month = today.getMonth() + 1;
             const day = today.getDate();
             
@@ -1142,21 +1131,19 @@
         // 更新周一到周五的日期
         function updateWeekdayDates() {
             // 计算第一周的周一
-            const startDayOfWeek = startDate.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const startDayOfWeek = startDate.getDay();
             const firstMonday = new Date(startDate);
             
-            // 调整到第一周的周一
             if (startDayOfWeek === 0) {
-                firstMonday.setDate(startDate.getDate() - 6); // 如果起始日是周日，周一就是前6天
+                firstMonday.setDate(startDate.getDate() - 6);
             } else {
-                firstMonday.setDate(startDate.getDate() - (startDayOfWeek - 1)); // 调整到周一
+                firstMonday.setDate(startDate.getDate() - (startDayOfWeek - 1));
             }
             
-            // 计算当前周的周一（根据当前周数）
+            // 计算当前周的周一
             const currentWeekMonday = new Date(firstMonday);
             currentWeekMonday.setDate(firstMonday.getDate() + (currentWeek - 1) * 7);
             
-            // 清空日期数据
             currentDateData = {};
             
             // 更新周一到周五的日期显示
@@ -1167,7 +1154,6 @@
                 const month = date.getMonth() + 1;
                 const day = date.getDate();
                 
-                // 存储日期数据
                 currentDateData[i] = { month, day, dateObj: date };
             }
             
@@ -1180,19 +1166,18 @@
             const timetableDiv = document.getElementById('timetable');
             timetableDiv.innerHTML = '';
             
-            // 第一行第一个格子（左上角）
+            // 第一行第一个格子
             const cornerCell = document.createElement('div');
             cornerCell.className = 'corner-cell';
             cornerCell.innerHTML = '节次/星期';
             timetableDiv.appendChild(cornerCell);
             
-            // 第一行的周一到周五标题（包含日期）
+            // 第一行的周一到周五标题
             const weekdays = ['周一', '周二', '周三', '周四', '周五'];
             for (let j = 0; j < 5; j++) {
                 const weekdayCell = document.createElement('div');
                 weekdayCell.className = 'weekday-cell';
                 
-                // 获取日期信息
                 const dateInfo = currentDateData[j] || { month: 12, day: 26 };
                 const month = dateInfo.month || 12;
                 const day = dateInfo.day || 26;
@@ -1204,13 +1189,11 @@
                 const today = new Date();
                 const currentDayOfWeek = today.getDay();
                 
-                // 如果不是周末，且当前是工作日，设置选中状态
                 if (currentDayOfWeek >= 1 && currentDayOfWeek <= 5) {
                     if (j === currentDayOfWeek - 1) {
                         weekdayCell.classList.add('selected');
                     }
                 } else {
-                    // 周末时，默认选中周一
                     if (j === 0) {
                         weekdayCell.classList.add('selected');
                     }
@@ -1218,25 +1201,19 @@
                 
                 // 点击事件
                 weekdayCell.addEventListener('click', () => {
-                    // 移除所有标题的选中状态
                     document.querySelectorAll('.weekday-cell').forEach(cell => {
                         cell.classList.remove('selected');
                     });
                     
-                    // 添加当前标题的选中状态
                     weekdayCell.classList.add('selected');
-                    
-                    // 更新选中的天
                     selectedDay = j;
                     
-                    // 更新备注标题（显示选中的日期）
                     const weekdays = ['周一', '周二', '周三', '周四', '周五'];
                     const dateInfo = currentDateData[j] || { month: 12, day: 26 };
                     const month = dateInfo.month || 12;
                     const day = dateInfo.day || 26;
                     document.getElementById('currentNoteDay').textContent = `${weekdays[j]} (${month}/${day}) 当天备注`;
                     
-                    // 加载当天的备注
                     loadDailyNotes();
                 });
                 
@@ -1260,7 +1237,6 @@
                     courseCell.dataset.day = j;
                     courseCell.dataset.slot = i;
                     
-                    // 课程内容容器
                     const courseContent = document.createElement('div');
                     courseContent.className = 'course-content';
                     courseCell.appendChild(courseContent);
@@ -1294,7 +1270,6 @@
                 }
             }
             
-            // 更新课程内容
             updateCourseDisplay();
         }
         
@@ -1307,7 +1282,7 @@
                 const day = parseInt(selectedCell.dataset.day);
                 const slot = parseInt(selectedCell.dataset.slot);
                 openDeleteModal(day, slot);
-            }, 500); // 长按500毫秒触发
+            }, 500);
         }
         
         // 取消长按
@@ -1322,23 +1297,19 @@
         function openCourseEditor(day, slot) {
             const modal = document.getElementById('courseModal');
             
-            // 设置模态框标题
             const weekdays = ['周一', '周二', '周三', '周四', '周五'];
             const dateInfo = currentDateData[day] || { month: 12, day: 26 };
             document.getElementById('modalHeader').textContent = `编辑课程 - ${weekdays[day]} 第${slot+1}节`;
             
-            // 检查当前周是否有数据
             const currentWeekKey = `${currentWeek}_${day}_${slot}`;
             if (courseData[currentWeekKey]) {
                 document.getElementById('courseSubject').value = courseData[currentWeekKey].subject || '';
                 document.getElementById('courseClass').value = courseData[currentWeekKey].class || '';
                 document.getElementById('courseRoom').value = courseData[currentWeekKey].room || '';
                 
-                // 设置颜色
                 selectedColor = courseData[currentWeekKey].color || 'black';
                 updateColorSelector(selectedColor);
             } else {
-                // 如果没有当前周的数据，检查是否有单双周数据
                 document.getElementById('courseSubject').value = '';
                 document.getElementById('courseClass').value = '';
                 document.getElementById('courseRoom').value = '';
@@ -1346,10 +1317,8 @@
                 updateColorSelector('black');
             }
             
-            // 设置默认保存选项
             document.getElementById('saveThisWeek').checked = true;
             
-            // 加载历史记录
             loadHistoryLists();
             
             modal.style.display = 'flex';
@@ -1358,10 +1327,7 @@
         // 打开删除模态框
         function openDeleteModal(day, slot) {
             const modal = document.getElementById('deleteModal');
-            
-            // 设置默认删除选项
             document.getElementById('deleteThisLesson').checked = true;
-            
             modal.style.display = 'flex';
         }
         
@@ -1388,12 +1354,9 @@
             const classVal = document.getElementById('courseClass').value.trim();
             const room = document.getElementById('courseRoom').value.trim();
             
-            // 获取保存选项
             const saveOption = document.querySelector('input[name="saveOption"]:checked').value;
             
-            // 根据保存选项处理数据
             if (saveOption === 'thisWeek') {
-                // 仅保存到本周 - 只保存当前周
                 const courseKey = `${currentWeek}_${day}_${slot}`;
                 if (subject || classVal || room) {
                     courseData[courseKey] = { 
@@ -1404,7 +1367,6 @@
                         saveType: 'thisWeek'
                     };
                     
-                    // 添加到历史记录
                     addToHistory('subjects', subject);
                     addToHistory('classes', classVal);
                     addToHistory('rooms', room);
@@ -1412,7 +1374,6 @@
                     delete courseData[courseKey];
                 }
             } else if (saveOption === 'allOdd') {
-                // 保存到全部单周
                 for (let week = 1; week <= totalWeeks; week += 2) {
                     const courseKey = `${week}_${day}_${slot}`;
                     if (subject || classVal || room) {
@@ -1427,14 +1388,12 @@
                         delete courseData[courseKey];
                     }
                 }
-                // 添加到历史记录
                 if (subject || classVal || room) {
                     addToHistory('subjects', subject);
                     addToHistory('classes', classVal);
                     addToHistory('rooms', room);
                 }
             } else if (saveOption === 'allEven') {
-                // 保存到全部双周
                 for (let week = 2; week <= totalWeeks; week += 2) {
                     const courseKey = `${week}_${day}_${slot}`;
                     if (subject || classVal || room) {
@@ -1449,14 +1408,12 @@
                         delete courseData[courseKey];
                     }
                 }
-                // 添加到历史记录
                 if (subject || classVal || room) {
                     addToHistory('subjects', subject);
                     addToHistory('classes', classVal);
                     addToHistory('rooms', room);
                 }
             } else if (saveOption === 'allWeeks') {
-                // 保存到全部单双周
                 for (let week = 1; week <= totalWeeks; week++) {
                     const courseKey = `${week}_${day}_${slot}`;
                     if (subject || classVal || room) {
@@ -1471,7 +1428,6 @@
                         delete courseData[courseKey];
                     }
                 }
-                // 添加到历史记录
                 if (subject || classVal || room) {
                     addToHistory('subjects', subject);
                     addToHistory('classes', classVal);
@@ -1479,13 +1435,8 @@
                 }
             }
             
-            // 更新显示
             updateCourseDisplay();
-            
-            // 保存数据到本地
             saveData();
-            
-            // 关闭模态框
             closeCourseEditor();
         }
         
@@ -1499,41 +1450,30 @@
             const day = parseInt(selectedCell.dataset.day);
             const slot = parseInt(selectedCell.dataset.slot);
             
-            // 获取删除选项
             const deleteOption = document.querySelector('input[name="deleteOption"]:checked').value;
             
-            // 根据删除选项处理数据
             if (deleteOption === 'thisLesson') {
-                // 只删除本节课 - 只删除当前周的课程
                 const courseKey = `${currentWeek}_${day}_${slot}`;
                 delete courseData[courseKey];
             } else if (deleteOption === 'allOdd') {
-                // 删除本节全部单周
                 for (let week = 1; week <= totalWeeks; week += 2) {
                     const courseKey = `${week}_${day}_${slot}`;
                     delete courseData[courseKey];
                 }
             } else if (deleteOption === 'allEven') {
-                // 删除本节全部双周
                 for (let week = 2; week <= totalWeeks; week += 2) {
                     const courseKey = `${week}_${day}_${slot}`;
                     delete courseData[courseKey];
                 }
             } else if (deleteOption === 'allWeeks') {
-                // 删除本节全部单双周
                 for (let week = 1; week <= totalWeeks; week++) {
                     const courseKey = `${week}_${day}_${slot}`;
                     delete courseData[courseKey];
                 }
             }
             
-            // 更新显示
             updateCourseDisplay();
-            
-            // 保存数据到本地
             saveData();
-            
-            // 关闭模态框
             closeDeleteModal();
         }
         
@@ -1558,7 +1498,6 @@
                 const slot = parseInt(cell.dataset.slot);
                 const courseKey = `${currentWeek}_${day}_${slot}`;
                 
-                // 获取或创建课程内容容器
                 let courseContent = cell.querySelector('.course-content');
                 if (!courseContent) {
                     courseContent = document.createElement('div');
@@ -1566,7 +1505,6 @@
                     cell.appendChild(courseContent);
                 }
                 
-                // 清空内容
                 courseContent.innerHTML = '';
                 
                 if (courseData[courseKey]) {
@@ -1576,7 +1514,6 @@
                         const subjectDiv = document.createElement('div');
                         subjectDiv.className = 'course-subject';
                         subjectDiv.textContent = course.subject;
-                        // 应用颜色
                         subjectDiv.classList.add(`text-${course.color || 'black'}`);
                         courseContent.appendChild(subjectDiv);
                     }
@@ -1588,9 +1525,7 @@
                         courseContent.appendChild(detailsDiv);
                     }
                 }
-                // 没有数据时不显示任何内容，保持空白
                 
-                // 确保单双周样式正确
                 cell.className = 'course-cell';
                 if (currentWeek % 2 === 1) {
                     cell.classList.add('odd-week');
@@ -1606,12 +1541,11 @@
             const timeInputsDiv = document.getElementById('timeInputs');
             timeInputsDiv.innerHTML = '';
             
-            // 生成7个时间输入框
             for (let i = 0; i < 7; i++) {
                 const timeInputGroup = document.createElement('div');
                 timeInputGroup.className = 'time-input-group';
                 timeInputGroup.innerHTML = `
-                    <label>第${i+1}节:</label>
+                    <label for="time-${i}">第${i+1}节:</label>
                     <input type="text" class="time-input" id="time-${i}" value="${classTimes[i]}" placeholder="例如: 08:00-08:45">
                 `;
                 timeInputsDiv.appendChild(timeInputGroup);
@@ -1624,28 +1558,21 @@
         function saveTimeSettings() {
             for (let i = 0; i < 7; i++) {
                 const timeInput = document.getElementById(`time-${i}`);
-                // 移除时间前的冒号
                 let timeValue = timeInput.value.trim();
-                // 如果时间以冒号开头，则删除
                 if (timeValue.startsWith(':')) {
                     timeValue = timeValue.substring(1).trim();
                 }
                 classTimes[i] = timeValue;
             }
             
-            // 更新课程表中的时间显示
             document.querySelectorAll('.time-slot').forEach((slot, index) => {
                 const timeEdit = slot.querySelector('.time-edit');
                 if (timeEdit && classTimes[index]) {
-                    // 确保显示的时间没有前导冒号
                     timeEdit.textContent = classTimes[index].replace(/^:/, '');
                 }
             });
             
-            // 保存数据到本地
             saveData();
-            
-            // 关闭模态框
             closeTimeSettings();
         }
         
@@ -1657,7 +1584,6 @@
         // 打开起始日期设置
         function openStartDateModal() {
             const modal = document.getElementById('startDateModal');
-            // 设置当前日期
             document.getElementById('startDateInput').value = formatDateForInput(startDate);
             modal.style.display = 'flex';
         }
@@ -1715,14 +1641,12 @@
         // 加载当天的备注
         function loadDailyNotes() {
             const today = new Date();
-            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const currentDayOfWeek = today.getDay();
             
             let noteKey;
             if (selectedDay === -1) {
-                // 周末情况
                 noteKey = `notes-${currentWeek}-weekend-${currentDayOfWeek}`;
             } else {
-                // 工作日情况
                 noteKey = `notes-${currentWeek}-${selectedDay}`;
             }
             
@@ -1732,14 +1656,12 @@
         // 保存当天的备注
         function saveDailyNotes() {
             const today = new Date();
-            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const currentDayOfWeek = today.getDay();
             
             let noteKey;
             if (selectedDay === -1) {
-                // 周末情况
                 noteKey = `notes-${currentWeek}-weekend-${currentDayOfWeek}`;
             } else {
-                // 工作日情况
                 noteKey = `notes-${currentWeek}-${selectedDay}`;
             }
             
@@ -1765,27 +1687,20 @@
                 return;
             }
             
-            // 查找包含搜索关键词的备注
             searchResults = [];
             
-            // 搜索所有周的备注
             for (let week = 1; week <= totalWeeks; week++) {
-                // 搜索工作日备注
                 for (let day = 0; day < 5; day++) {
                     const noteKey = `notes-${week}-${day}`;
                     if (notesData[noteKey] && notesData[noteKey].toLowerCase().includes(searchTerm)) {
-                        // 获取日期信息
                         const weekdays = ['周一', '周二', '周三', '周四', '周五'];
                         
-                        // 计算具体日期
                         const weekStart = new Date(startDate);
                         weekStart.setDate(startDate.getDate() + (week - 1) * 7);
                         
-                        // 找到该周的周一
                         const weekMonday = new Date(weekStart);
                         weekMonday.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1));
                         
-                        // 计算具体日期
                         const specificDate = new Date(weekMonday);
                         specificDate.setDate(weekMonday.getDate() + day);
                         
@@ -1803,22 +1718,18 @@
                     }
                 }
                 
-                // 搜索周末备注
                 for (let weekendDay = 0; weekendDay <= 6; weekendDay++) {
                     if (weekendDay === 0 || weekendDay === 6) {
                         const noteKey = `notes-${week}-weekend-${weekendDay}`;
                         if (notesData[noteKey] && notesData[noteKey].toLowerCase().includes(searchTerm)) {
                             const dayName = weekendDay === 0 ? '周日' : '周六';
                             
-                            // 计算具体日期
                             const weekStart = new Date(startDate);
                             weekStart.setDate(startDate.getDate() + (week - 1) * 7);
                             
-                            // 找到该周的周一
                             const weekMonday = new Date(weekStart);
                             weekMonday.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1));
                             
-                            // 计算具体日期（周六是+5，周日是+6）
                             const specificDate = new Date(weekMonday);
                             specificDate.setDate(weekMonday.getDate() + (weekendDay === 6 ? 5 : 6));
                             
@@ -1827,7 +1738,7 @@
                             
                             searchResults.push({
                                 week: week,
-                                day: weekendDay === 6 ? 5 : 6, // 周六为5，周日为6
+                                day: weekendDay === 6 ? 5 : 6,
                                 dayName: dayName,
                                 month: month,
                                 dayOfMonth: dayOfMonth,
@@ -1838,7 +1749,6 @@
                 }
             }
             
-            // 显示搜索结果
             if (searchResults.length > 0) {
                 resultsDiv.innerHTML = '<strong>搜索结果：</strong>';
                 
@@ -1850,25 +1760,19 @@
                     resultItem.dataset.day = result.day;
                     
                     resultItem.addEventListener('click', () => {
-                        // 跳转到对应的周和日期
                         currentWeek = result.week;
                         
-                        // 判断是工作日还是周末
                         if (result.day >= 0 && result.day <= 4) {
                             selectedDay = result.day;
                             isCurrentWeek = false;
                         } else {
-                            selectedDay = -1; // 周末
+                            selectedDay = -1;
                             isCurrentWeek = true;
                         }
                         
-                        // 更新显示
                         updateWeekDisplay();
                         
-                        // 隐藏搜索结果
                         resultsDiv.style.display = 'none';
-                        
-                        // 清空搜索框
                         document.getElementById('searchNotes').value = '';
                         toggleSearchBox();
                     });
@@ -1892,33 +1796,28 @@
             }
         }
         
-        // 导出数据 - 修复PakePlus兼容性
+        // 导出数据
         function exportData() {
-            // 创建简化的数据结构
             const exportData = {
                 classTimes: classTimes,
                 courses: {}
             };
             
-            // 只导出课程信息，不导出备注
             for (const key in courseData) {
                 if (courseData.hasOwnProperty(key)) {
                     exportData.courses[key] = courseData[key];
                 }
             }
             
-            // 转换为TXT格式
             let txtContent = "教师课程表数据\n";
             txtContent += "================\n\n";
             txtContent += "课程时间安排:\n";
             classTimes.forEach((time, index) => {
-                // 确保导出时时间没有前导冒号
                 const cleanTime = time.replace(/^:/, '');
                 txtContent += `第${index+1}节: ${cleanTime}\n`;
             });
             
             txtContent += "\n课程安排:\n";
-            // 按星期和节次排序
             const days = ['周一', '周二', '周三', '周四', '周五'];
             for (let day = 0; day < 5; day++) {
                 for (let slot = 0; slot < 7; slot++) {
@@ -1927,7 +1826,6 @@
                     let oddWeekData = null;
                     let evenWeekData = null;
                     
-                    // 检查单周和双周
                     for (let week = 1; week <= totalWeeks; week++) {
                         const courseKey = `${week}_${day}_${slot}`;
                         if (courseData[courseKey]) {
@@ -1955,7 +1853,6 @@
                 }
             }
             
-            // 使用Blob和URL.createObjectURL方法，兼容PakePlus
             try {
                 const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
@@ -1965,7 +1862,6 @@
                 a.download = `课程表_${new Date().toLocaleDateString('zh-CN')}.txt`;
                 document.body.appendChild(a);
                 
-                // 触发点击事件
                 const clickEvent = new MouseEvent('click', {
                     view: window,
                     bubbles: true,
@@ -1973,7 +1869,6 @@
                 });
                 a.dispatchEvent(clickEvent);
                 
-                // 清理
                 setTimeout(() => {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
@@ -1981,14 +1876,12 @@
                 
             } catch (error) {
                 console.error('导出失败:', error);
-                // 备用方案：使用alert显示数据让用户手动复制
                 alert('导出失败，请复制以下文本保存为.txt文件：\n\n' + txtContent);
             }
         }
         
-        // 导入数据 - 修复PakePlus兼容性
+        // 导入数据
         function importData() {
-            // 创建文件输入元素
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.txt';
@@ -2003,19 +1896,15 @@
                 reader.onload = function(event) {
                     try {
                         const content = event.target.result;
-                        
-                        // 解析TXT文件
                         const lines = content.split('\n');
                         let parsingTimes = false;
                         let parsingCourses = false;
                         let currentDay = -1;
                         let currentSlot = -1;
                         
-                        // 临时存储导入的数据
                         const importedCourseData = {};
-                        const importedClassTimes = [...classTimes]; // 复制默认时间
+                        const importedClassTimes = [...classTimes];
                         
-                        // 星期映射
                         const dayMap = {
                             '周一': 0,
                             '周二': 1,
@@ -2040,7 +1929,6 @@
                             }
                             
                             if (parsingTimes && line.startsWith("第")) {
-                                // 解析时间
                                 const match = line.match(/第\s*(\d+)\s*[节:]?\s*(.+)/);
                                 if (match) {
                                     const slot = parseInt(match[1]) - 1;
@@ -2050,7 +1938,6 @@
                                     }
                                 }
                             } else if (parsingCourses) {
-                                // 解析课程
                                 const dayMatch = line.match(/(周一|周二|周三|周四|周五)\s*第\s*(\d+)\s*[节:]/);
                                 if (dayMatch) {
                                     currentDay = dayMap[dayMatch[1]];
@@ -2058,7 +1945,6 @@
                                     continue;
                                 }
                                 
-                                // 检查是否是单周或双周课程行
                                 if (line.includes("单周:") || line.includes("双周:")) {
                                     const isOdd = line.includes("单周:");
                                     const prefix = isOdd ? "单周:" : "双周:";
@@ -2068,7 +1954,6 @@
                                         const courseInfo = courseInfoStr.split('|').map(s => s.trim());
                                         
                                         if (isOdd) {
-                                            // 保存到所有单周
                                             for (let week = 1; week <= totalWeeks; week += 2) {
                                                 const courseKey = `${week}_${currentDay}_${currentSlot}`;
                                                 importedCourseData[courseKey] = {
@@ -2080,7 +1965,6 @@
                                                 };
                                             }
                                         } else {
-                                            // 保存到所有双周
                                             for (let week = 2; week <= totalWeeks; week += 2) {
                                                 const courseKey = `${week}_${currentDay}_${currentSlot}`;
                                                 importedCourseData[courseKey] = {
@@ -2097,14 +1981,11 @@
                             }
                         }
                         
-                        // 将导入的数据合并到现有数据中
                         Object.assign(courseData, importedCourseData);
                         classTimes = importedClassTimes;
                         
-                        // 更新界面
                         updateCourseDisplay();
                         
-                        // 更新课程表中的时间显示
                         document.querySelectorAll('.time-slot').forEach((slot, index) => {
                             const timeEdit = slot.querySelector('.time-edit');
                             if (timeEdit && classTimes[index]) {
@@ -2112,7 +1993,6 @@
                             }
                         });
                         
-                        // 保存数据到本地
                         saveData();
                         
                         alert('数据导入成功！');
@@ -2121,7 +2001,6 @@
                         alert('导入失败：文件格式不正确。请确保文件格式正确。');
                     }
                     
-                    // 清理input元素
                     document.body.removeChild(input);
                 };
                 
@@ -2134,10 +2013,8 @@
                 reader.readAsText(file, 'UTF-8');
             };
             
-            // 添加到DOM并触发点击
             document.body.appendChild(input);
             
-            // 使用setTimeout确保DOM更新
             setTimeout(() => {
                 try {
                     input.click();
@@ -2151,7 +2028,6 @@
         
         // 保存数据到本地
         function saveData() {
-            // 准备数据
             const data = {
                 courseData,
                 notesData,
@@ -2162,7 +2038,6 @@
                 startDate: startDate.toISOString().split('T')[0]
             };
             
-            // 保存到本地存储
             localStorage.setItem('teacherTimetable', JSON.stringify(data));
         }
         
@@ -2182,7 +2057,6 @@
                     if (data.currentWeekType) currentWeekType = data.currentWeekType;
                     if (data.startDate) startDate = new Date(data.startDate);
                     
-                    // 更新界面
                     updateCourseDisplay();
                     loadDailyNotes();
                     updateWeekTypeDisplay();
@@ -2196,23 +2070,19 @@
         function addToHistory(type, value) {
             if (!value) return;
             
-            // 如果值不在历史记录中，添加到列表开头
             if (!historyData[type].includes(value)) {
                 historyData[type].unshift(value);
                 
-                // 限制历史记录数量
                 if (historyData[type].length > 10) {
                     historyData[type] = historyData[type].slice(0, 10);
                 }
                 
-                // 保存数据
                 saveData();
             }
         }
         
         // 加载历史记录列表
         function loadHistoryLists() {
-            // 科目历史
             const subjectList = document.getElementById('subjectHistoryList');
             subjectList.innerHTML = '';
             historyData.subjects.forEach(subject => {
@@ -2228,7 +2098,6 @@
                 }
             });
             
-            // 班级历史
             const classList = document.getElementById('classHistoryList');
             classList.innerHTML = '';
             historyData.classes.forEach(className => {
@@ -2244,7 +2113,6 @@
                 }
             });
             
-            // 教室历史
             const roomList = document.getElementById('roomHistoryList');
             roomList.innerHTML = '';
             historyData.rooms.forEach(room => {
@@ -2263,32 +2131,19 @@
         
         // 设置事件监听器
         function setupEventListeners() {
-            // 导入按钮
             document.getElementById('importBtn').addEventListener('click', importData);
-            
-            // 导出按钮
             document.getElementById('exportBtn').addEventListener('click', exportData);
-            
-            // 清空按钮
             document.getElementById('clearBtn').addEventListener('click', clearTimetable);
-            
-            // 时间按钮
             document.getElementById('timeBtn').addEventListener('click', openTimeSettings);
-            
-            // 日历按钮
             document.getElementById('calendarBtn').addEventListener('click', openStartDateModal);
-            
-            // 搜索切换按钮
             document.getElementById('searchToggle').addEventListener('click', toggleSearchBox);
             
-            // 搜索输入框回车键
             document.getElementById('searchNotes').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     searchNotes();
                 }
             });
             
-            // 点击页面其他地方关闭搜索框
             document.addEventListener('click', function(e) {
                 const searchContainer = document.querySelector('.search-container');
                 const searchBox = document.getElementById('searchBox');
@@ -2299,12 +2154,10 @@
                 }
             });
             
-            // 周导航按钮
             document.getElementById('prevWeek').addEventListener('click', () => {
                 if (currentWeek > 1) {
                     currentWeek--;
                     isCurrentWeek = false;
-                    // 根据周数确定单双周
                     currentWeekType = currentWeek % 2 === 1 ? 'odd' : 'even';
                     updateWeekDisplay();
                 }
@@ -2315,16 +2168,15 @@
                 const calculatedWeek = calculateCurrentWeek();
                 const currentDayOfWeek = today.getDay();
                 
-                // 如果是周末，显示下周
                 if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
                     currentWeek = calculatedWeek + 1;
                     if (currentWeek > totalWeeks) {
                         currentWeek = totalWeeks;
                     }
-                    selectedDay = -1; // 周末
+                    selectedDay = -1;
                 } else {
                     currentWeek = calculatedWeek;
-                    selectedDay = currentDayOfWeek - 1; // 工作日
+                    selectedDay = currentDayOfWeek - 1;
                 }
                 
                 isCurrentWeek = true;
@@ -2336,25 +2188,20 @@
                 if (currentWeek < totalWeeks) {
                     currentWeek++;
                     isCurrentWeek = false;
-                    // 根据周数确定单双周
                     currentWeekType = currentWeek % 2 === 1 ? 'odd' : 'even';
                     updateWeekDisplay();
                 }
             });
             
-            // 备注输入框失去焦点时保存
             document.getElementById('dailyNotes').addEventListener('blur', saveDailyNotes);
             
-            // 课程编辑模态框 - 保存按钮
             document.getElementById('saveCourse').addEventListener('click', function(e) {
                 e.preventDefault();
                 saveCourse();
             });
             
-            // 课程编辑模态框 - 取消按钮
             document.getElementById('cancelCourse').addEventListener('click', closeCourseEditor);
             
-            // 课程删除模态框 - 删除按钮
             document.getElementById('confirmDelete').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (confirm('确定要删除这个课程吗？')) {
@@ -2362,18 +2209,14 @@
                 }
             });
             
-            // 课程删除模态框 - 取消按钮
             document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
             
-            // 时间设置模态框
             document.getElementById('saveTime').addEventListener('click', saveTimeSettings);
             document.getElementById('cancelTime').addEventListener('click', closeTimeSettings);
             
-            // 起始日期设置模态框
             document.getElementById('saveStartDate').addEventListener('click', saveStartDate);
             document.getElementById('cancelStartDate').addEventListener('click', closeStartDateModal);
             
-            // 点击模态框外部关闭
             window.addEventListener('click', function(event) {
                 const courseModal = document.getElementById('courseModal');
                 const deleteModal = document.getElementById('deleteModal');
@@ -2397,7 +2240,6 @@
                 }
             });
             
-            // 历史记录按钮点击事件
             document.getElementById('subjectHistoryBtn').addEventListener('click', function() {
                 const list = document.getElementById('subjectHistoryList');
                 list.style.display = list.style.display === 'block' ? 'none' : 'block';
@@ -2413,7 +2255,6 @@
                 list.style.display = list.style.display === 'block' ? 'none' : 'block';
             });
             
-            // 点击页面其他地方关闭历史记录列表
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.input-container')) {
                     document.querySelectorAll('.data-list').forEach(list => {
@@ -2422,7 +2263,6 @@
                 }
             });
             
-            // 颜色选择器点击事件
             document.querySelectorAll('.color-option').forEach(option => {
                 option.addEventListener('click', function() {
                     selectedColor = this.dataset.color;
@@ -2433,24 +2273,14 @@
         
         // 更新周显示
         function updateWeekDisplay() {
-            // 更新日期显示
             const today = new Date();
             const dateStr = formatDate(today);
             document.getElementById('currentDate').textContent = `${dateStr} 第${currentWeek}/${totalWeeks}周`;
             
-            // 更新单双周显示
             updateWeekTypeDisplay();
-            
-            // 更新周一到周五的日期
             updateWeekdayDates();
-            
-            // 重新生成课程表以更新日期
             generateTimetable();
-            
-            // 更新"本周"按钮状态
             updateCurrentWeekButton();
-            
-            // 更新备注标题
             updateNotesHeader();
         }
         
