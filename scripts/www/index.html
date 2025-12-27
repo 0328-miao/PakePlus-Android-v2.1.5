@@ -757,18 +757,6 @@
         .timetable::-webkit-scrollbar-thumb:hover {
             background: #78909c;
         }
-        
-        /* 周末备注提示 */
-        .weekend-note {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 12px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #856404;
-        }
     </style>
 </head>
 <body>
@@ -786,10 +774,6 @@
                 <button class="week-nav-btn current-week" id="currentWeek">本周</button>
                 <button class="week-nav-btn" id="nextWeek">下一周</button>
             </div>
-        </div>
-        
-        <div id="weekendNoteInfo" class="weekend-note" style="display: none;">
-            今天是周末，显示下周的课程表。
         </div>
         
         <div class="timetable" id="timetable">
@@ -1040,18 +1024,12 @@
                     }
                 }
                 selectedDay = -1; // 标记为周末
-                
-                // 显示周末提示
-                document.getElementById('weekendNoteInfo').style.display = 'block';
             } else {
                 // 工作日，显示本周课程表
                 if (isCurrentWeek) {
                     currentWeek = calculatedWeek;
                 }
                 selectedDay = currentDayOfWeek - 1; // 转换为0-4（周一到周五）
-                
-                // 隐藏周末提示
-                document.getElementById('weekendNoteInfo').style.display = 'none';
             }
             
             // 确定单双周（基于当前周数）
@@ -1397,7 +1375,7 @@
             });
         }
         
-        // 保存课程 - 修复BUG：仅保存到本周时只保存当前周
+        // 保存课程
         function saveCourse() {
             if (!selectedCell) {
                 alert('请先选择要编辑的课程单元格');
@@ -1423,7 +1401,7 @@
                         class: classVal, 
                         room,
                         color: selectedColor,
-                        saveType: 'thisWeek' // 标记保存类型
+                        saveType: 'thisWeek'
                     };
                     
                     // 添加到历史记录
@@ -1511,7 +1489,7 @@
             closeCourseEditor();
         }
         
-        // 删除课程 - 修复BUG：只删除本节课时只删除当前周
+        // 删除课程
         function deleteCourse() {
             if (!selectedCell) {
                 alert('请先选择要删除的课程单元格');
@@ -1642,7 +1620,7 @@
             modal.style.display = 'flex';
         }
         
-        // 保存时间设置 - 修复BUG：确保时间数据正确保存
+        // 保存时间设置
         function saveTimeSettings() {
             for (let i = 0; i < 7; i++) {
                 const timeInput = document.getElementById(`time-${i}`);
@@ -1879,15 +1857,9 @@
                         if (result.day >= 0 && result.day <= 4) {
                             selectedDay = result.day;
                             isCurrentWeek = false;
-                            
-                            // 隐藏周末提示
-                            document.getElementById('weekendNoteInfo').style.display = 'none';
                         } else {
                             selectedDay = -1; // 周末
                             isCurrentWeek = true;
-                            
-                            // 显示周末提示
-                            document.getElementById('weekendNoteInfo').style.display = 'block';
                         }
                         
                         // 更新显示
@@ -1920,7 +1892,7 @@
             }
         }
         
-        // 导出数据 - 修复BUG：确保导出时时间格式正确
+        // 导出数据 - 修复PakePlus兼容性
         function exportData() {
             // 创建简化的数据结构
             const exportData = {
@@ -1983,26 +1955,49 @@
                 }
             }
             
-            const blob = new Blob([txtContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `课程表_${new Date().toLocaleDateString()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // 使用Blob和URL.createObjectURL方法，兼容PakePlus
+            try {
+                const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `课程表_${new Date().toLocaleDateString('zh-CN')}.txt`;
+                document.body.appendChild(a);
+                
+                // 触发点击事件
+                const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                });
+                a.dispatchEvent(clickEvent);
+                
+                // 清理
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+            } catch (error) {
+                console.error('导出失败:', error);
+                // 备用方案：使用alert显示数据让用户手动复制
+                alert('导出失败，请复制以下文本保存为.txt文件：\n\n' + txtContent);
+            }
         }
         
-        // 导入数据 - 修复的解析逻辑
+        // 导入数据 - 修复PakePlus兼容性
         function importData() {
+            // 创建文件输入元素
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.txt';
+            input.style.display = 'none';
             
             input.onchange = function(e) {
                 const file = e.target.files[0];
+                if (!file) return;
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(event) {
@@ -2125,20 +2120,36 @@
                         console.error('导入失败:', error);
                         alert('导入失败：文件格式不正确。请确保文件格式正确。');
                     }
+                    
+                    // 清理input元素
+                    document.body.removeChild(input);
                 };
                 
                 reader.onerror = function(event) {
                     console.error('文件读取失败:', event.target.error);
                     alert('文件读取失败，请重试。');
+                    document.body.removeChild(input);
                 };
                 
                 reader.readAsText(file, 'UTF-8');
             };
             
-            input.click();
+            // 添加到DOM并触发点击
+            document.body.appendChild(input);
+            
+            // 使用setTimeout确保DOM更新
+            setTimeout(() => {
+                try {
+                    input.click();
+                } catch (error) {
+                    console.error('触发文件选择失败:', error);
+                    alert('文件选择失败，请检查浏览器权限设置。');
+                    document.body.removeChild(input);
+                }
+            }, 100);
         }
         
-        // 保存数据到本地 - 修复BUG：确保时间数据正确保存
+        // 保存数据到本地
         function saveData() {
             // 准备数据
             const data = {
@@ -2155,7 +2166,7 @@
             localStorage.setItem('teacherTimetable', JSON.stringify(data));
         }
         
-        // 从本地存储加载数据 - 修复BUG：确保时间数据正确加载
+        // 从本地存储加载数据
         function loadSavedData() {
             const savedData = localStorage.getItem('teacherTimetable');
             
@@ -2311,15 +2322,9 @@
                         currentWeek = totalWeeks;
                     }
                     selectedDay = -1; // 周末
-                    
-                    // 显示周末提示
-                    document.getElementById('weekendNoteInfo').style.display = 'block';
                 } else {
                     currentWeek = calculatedWeek;
                     selectedDay = currentDayOfWeek - 1; // 工作日
-                    
-                    // 隐藏周末提示
-                    document.getElementById('weekendNoteInfo').style.display = 'none';
                 }
                 
                 isCurrentWeek = true;
