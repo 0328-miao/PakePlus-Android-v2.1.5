@@ -1,11 +1,2456 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>教师课程表</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+            padding: 12px 8px;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 12px;
+            min-height: calc(100vh - 24px);
+        }
+        
+        .header {
+            background: linear-gradient(to right, #3a7bd5, #00d2ff);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .date-info {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .week-type-display {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        
+        .calendar-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            padding: 3px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+        
+        .calendar-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .week-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        
+        .week-nav-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            min-width: 75px;
+        }
+        
+        .week-nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .week-nav-btn.current-week {
+            background-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+        
+        .week-nav-btn.back-to-current {
+            background-color: #ff9800;
+        }
+        
+        .notes-search-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+            position: relative;
+        }
+        
+        .notes-section {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notes-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #2c5282;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .notes-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            resize: vertical;
+            min-height: 45px; /* 减小最小高度 */
+            background-color: #f8f9fa;
+        }
+        
+        .search-section {
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-toggle {
+            background: #4a6fa5;
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-bottom: 4px;
+        }
+        
+        .search-toggle:hover {
+            background: #3a5f95;
+        }
+        
+        .search-box {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            overflow: hidden;
+            transition: width 0.3s;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        .search-box.active {
+            width: 150px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 36px 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            pointer-events: none;
+        }
+        
+        .search-results {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+            max-height: 60vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .search-result-item {
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-bottom: 1px dashed #ddd;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .search-result-item:hover {
+            background-color: #ffeaa7;
+        }
+        
+        .timetable {
+            display: grid;
+            grid-template-columns: 50px repeat(5, 1fr);
+            gap: 1px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 12px;
+            max-height: 55vh; /* 减小高度，使滚动条更短 */
+            overflow-y: auto;
+        }
+        
+        .corner-cell {
+            background-color: #4a6fa5;
+            color: white;
+            text-align: center;
+            padding: 4px 2px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 36px;
+        }
+        
+        /* 添加星期标题选中样式 */
+        .weekday-cell {
+            background-color: #4a6fa5;
+            color: white;
+            text-align: center;
+            padding: 4px 2px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 36px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .weekday-cell.selected {
+            background-color: #3a5f95;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+        
+        .weekday-cell:hover {
+            background-color: #3a5f95;
+        }
+        
+        .time-slot {
+            background-color: #f8f9fa;
+            padding: 4px 2px;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #555;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-bottom: 1px solid #e0e0e0;
+            min-height: 36px;
+        }
+        
+        .time-label {
+            font-weight: bold;
+            color: #2c5282;
+        }
+        
+        .time-edit {
+            color: #888;
+            font-size: 0.6rem;
+            margin-top: 1px;
+        }
+        
+        .course-cell {
+            background-color: white;
+            padding: 4px 2px;
+            min-height: 36px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            user-select: none;
+        }
+        
+        .course-cell:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .course-content {
+            font-size: 0.7rem;
+            line-height: 1.1;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .course-subject {
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        
+        .course-details {
+            color: #666;
+            font-size: 0.65rem;
+            margin-top: 1px;
+        }
+        
+        .odd-week {
+            border-left: 3px solid #00bcd4;
+        }
+        
+        .even-week {
+            border-left: 3px solid #4caf50;
+        }
+        
+        /* 字体颜色样式 */
+        .text-black { color: #000; }
+        .text-red { color: #f44336; }
+        .text-green { color: #4caf50; }
+        
+        .week-indicator {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            font-size: 0.55rem;
+            padding: 1px 3px;
+            border-radius: 2px;
+            color: white;
+            display: none;
+        }
+        
+        .odd-indicator {
+            background-color: #00bcd4;
+        }
+        
+        .even-indicator {
+            background-color: #4caf50;
+        }
+        
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+        
+        .action-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 6px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        
+        .import-btn {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .export-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .clear-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .time-btn {
+            background-color: #9c27b0;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 380px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c5282;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .save-options {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .save-option {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .save-option:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .save-option input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .save-option.this-week {
+            color: #ff5722;
+            font-weight: 600;
+        }
+        
+        .delete-options {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .delete-option {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .delete-option:hover {
+            background-color: #ffebee;
+        }
+        
+        .delete-option input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .delete-option.this-lesson {
+            color: #f44336;
+            font-weight: 600;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .modal-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .modal-save {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .modal-delete {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .modal-cancel {
+            background-color: #9e9e9e;
+            color: white;
+        }
+        
+        .time-modal-content {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        
+        .time-input-group label {
+            min-width: 45px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .time-input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .data-list {
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        
+        .data-list-item {
+            padding: 6px 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .data-list-item:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .history-btn {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .input-container {
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        .color-selector {
+            display: flex;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        
+        .color-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .color-option:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .color-option.selected {
+            background-color: #e8f4ff;
+            border: 2px solid #3a7bd5;
+        }
+        
+        .color-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-bottom: 4px;
+        }
+        
+        .color-black {
+            background-color: #000;
+        }
+        
+        .color-red {
+            background-color: #f44336;
+        }
+        
+        .color-green {
+            background-color: #4caf50;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 8px 6px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 10px;
+            }
+            
+            .date-info {
+                font-size: 1rem;
+                justify-content: space-between;
+            }
+            
+            .week-nav-btn {
+                padding: 5px 10px;
+                font-size: 0.8rem;
+                min-width: 70px;
+            }
+            
+            .notes-search-row {
+                flex-direction: row;
+            }
+            
+            .search-section {
+                width: 36px;
+            }
+            
+            .search-toggle {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+            
+            .search-box.active {
+                width: 140px;
+            }
+            
+            .search-results {
+                width: 95%;
+                max-height: 50vh;
+            }
+            
+            .timetable {
+                grid-template-columns: 45px repeat(5, 1fr);
+                max-height: 50vh; /* 移动端减小高度 */
+            }
+            
+            .course-cell {
+                min-height: 34px;
+            }
+            
+            .action-btn {
+                min-width: 55px;
+                padding: 7px 5px;
+                font-size: 0.75rem;
+            }
+            
+            .notes-input {
+                min-height: 40px; /* 移动端进一步减小高度 */
+                font-size: 0.8rem;
+                padding: 6px;
+            }
+        }
+        
+        /* 优化滚动条样式 */
+        .timetable::-webkit-scrollbar {
+            width: 3px; /* 减小滚动条宽度 */
+        }
+        
+        .timetable::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+        
+        .timetable::-webkit-scrollbar-thumb {
+            background: #b0bec5;
+            border-radius: 1px;
+        }
+        
+        .timetable::-webkit-scrollbar-thumb:hover {
+            background: #78909c;
+        }
+        
+        /* 周末备注提示 */
+        .weekend-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="date-info">
+                <span id="currentDate">2025/12/27 第18/25周</span>
+                <span class="week-type-display" id="weekTypeDisplay">双周</span>
+                <button class="calendar-btn" id="calendarBtn" title="设置起始日期">
+                    <i class="fas fa-calendar-alt"></i>
+                </button>
+            </div>
+            <div class="week-nav">
+                <button class="week-nav-btn" id="prevWeek">上一周</button>
+                <button class="week-nav-btn current-week" id="currentWeek">本周</button>
+                <button class="week-nav-btn" id="nextWeek">下一周</button>
+            </div>
+        </div>
+        
+        <div id="weekendNoteInfo" class="weekend-note" style="display: none;">
+            今天是周末，显示下周的课程表。
+        </div>
+        
+        <div class="timetable" id="timetable">
+            <!-- 时间表将通过JS动态生成 -->
+        </div>
+        
+        <div class="notes-search-row">
+            <div class="notes-section">
+                <div class="notes-label">
+                    <span id="currentNoteDay">周六 (12/27) 当天备注</span>
+                </div>
+                <textarea class="notes-input" id="dailyNotes" placeholder="输入当天的备注信息..."></textarea>
+            </div>
+            
+            <div class="search-section">
+                <div class="search-container">
+                    <button class="search-toggle" id="searchToggle">🔍</button>
+                    <div class="search-box" id="searchBox">
+                        <input type="text" class="search-input" id="searchNotes" placeholder="搜索备注...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                </div>
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="action-btn import-btn" id="importBtn">导入</button>
+            <button class="action-btn export-btn" id="exportBtn">导出</button>
+            <button class="action-btn clear-btn" id="clearBtn">清空</button>
+            <button class="action-btn time-btn" id="timeBtn">时间</button>
+        </div>
+    </div>
+    
+    <!-- 课程编辑模态框 -->
+    <div class="modal" id="courseModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">编辑课程</div>
+            
+            <div class="input-container">
+                <input type="text" class="modal-input" id="courseSubject" placeholder="科目" list="subjectHistory">
+                <button class="history-btn" id="subjectHistoryBtn">▼</button>
+                <div class="data-list" id="subjectHistoryList"></div>
+            </div>
+            
+            <div class="input-container">
+                <input type="text" class="modal-input" id="courseClass" placeholder="班级" list="classHistory">
+                <button class="history-btn" id="classHistoryBtn">▼</button>
+                <div class="data-list" id="classHistoryList"></div>
+            </div>
+            
+            <div class="input-container">
+                <input type="text" class="modal-input" id="courseRoom" placeholder="教室" list="roomHistory">
+                <button class="history-btn" id="roomHistoryBtn">▼</button>
+                <div class="data-list" id="roomHistoryList"></div>
+            </div>
+            
+            <!-- 字体颜色选择器 -->
+            <div class="color-selector">
+                <div class="color-option" data-color="black">
+                    <div class="color-dot color-black"></div>
+                    <span style="font-size: 0.8rem;">黑色</span>
+                </div>
+                <div class="color-option" data-color="red">
+                    <div class="color-dot color-red"></div>
+                    <span style="font-size: 0.8rem;">红色</span>
+                </div>
+                <div class="color-option" data-color="green">
+                    <div class="color-dot color-green"></div>
+                    <span style="font-size: 0.8rem;">绿色</span>
+                </div>
+            </div>
+            
+            <div class="save-options" id="saveOptions">
+                <div class="save-option this-week">
+                    <input type="radio" id="saveThisWeek" name="saveOption" value="thisWeek" checked>
+                    <label for="saveThisWeek">仅保存到本周</label>
+                </div>
+                <div class="save-option">
+                    <input type="radio" id="saveAllOdd" name="saveOption" value="allOdd">
+                    <label for="saveAllOdd">保存到全部单周</label>
+                </div>
+                <div class="save-option">
+                    <input type="radio" id="saveAllEven" name="saveOption" value="allEven">
+                    <label for="saveAllEven">保存到全部双周</label>
+                </div>
+                <div class="save-option">
+                    <input type="radio" id="saveAllWeeks" name="saveOption" value="allWeeks">
+                    <label for="saveAllWeeks">保存到全部单双周</label>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn modal-cancel" id="cancelCourse">取消</button>
+                <button class="modal-btn modal-save" id="saveCourse">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 课程删除模态框 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">删除课程</div>
+            
+            <div class="delete-options">
+                <div class="delete-option this-lesson">
+                    <input type="radio" id="deleteThisLesson" name="deleteOption" value="thisLesson" checked>
+                    <label for="deleteThisLesson">只删除本节课</label>
+                </div>
+                <div class="delete-option">
+                    <input type="radio" id="deleteAllOdd" name="deleteOption" value="allOdd">
+                    <label for="deleteAllOdd">删除本节全部单周</label>
+                </div>
+                <div class="delete-option">
+                    <input type="radio" id="deleteAllEven" name="deleteOption" value="allEven">
+                    <label for="deleteAllEven">删除本节全部双周</label>
+                </div>
+                <div class="delete-option">
+                    <input type="radio" id="deleteAllWeeks" name="deleteOption" value="allWeeks">
+                    <label for="deleteAllWeeks">删除本节全部单双周</label>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn modal-cancel" id="cancelDelete">取消</button>
+                <button class="modal-btn modal-delete" id="confirmDelete">删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 时间设置模态框 -->
+    <div class="modal" id="timeModal">
+        <div class="modal-content time-modal-content">
+            <div class="modal-header">设置课程时间</div>
+            <div id="timeInputs">
+                <!-- 时间输入框将通过JS动态生成 -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-cancel" id="cancelTime">取消</button>
+                <button class="modal-btn modal-save" id="saveTime">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 起始日期设置模态框 -->
+    <div class="modal" id="startDateModal">
+        <div class="modal-content">
+            <div class="modal-header">设置学期起始日期</div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 500;">选择学期开始的日期：</label>
+                <input type="date" class="modal-input" id="startDateInput" value="2025-09-01">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-cancel" id="cancelStartDate">取消</button>
+                <button class="modal-btn modal-save" id="saveStartDate">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentWeek = 18; // 当前周（从18开始，2025-12-27是第18周）
+        const totalWeeks = 25; // 总周数
+        let selectedCell = null; // 当前选中的课程单元格
+        let selectedDay = -1; // 当前选中的星期（-1表示周末，0-4对应周一到周五）
+        let currentWeekType = 'even'; // 当前周类型（odd单周/even双周）
+        let isCurrentWeek = true; // 是否当前周
+        let searchResults = []; // 搜索结果
+        let currentDateData = {}; // 存储当前周的日期数据
+        let startDate = new Date('2025-09-01'); // 学期起始日期
+        let isSearchActive = false; // 搜索框是否激活
+        let selectedColor = 'black'; // 默认颜色
+        let longPressTimer = null; // 长按计时器
+        let isLongPress = false; // 是否长按状态
+        
+        // 默认课程时间（7节课）
+        let classTimes = [
+            "08:00-08:45",
+            "08:55-09:40",
+            "10:00-10:45",
+            "11:00-11:45",
+            "14:00-14:45",
+            "15:00-15:45",
+            "16:00-16:45"
+        ];
+        
+        // 课程数据 - 新的数据结构：按周存储 courseData[week][day][slot]
+        let courseData = {};
+        
+        // 默认备注数据 - 按周和天存储
+        let notesData = {};
+        
+        // 历史记录数据
+        let historyData = {
+            subjects: [],
+            classes: [],
+            rooms: []
+        };
+        
+        // 初始化函数
+        function init() {
+            // 设置当前日期
+            updateCurrentDate();
+            
+            // 生成课程表
+            generateTimetable();
+            
+            // 加载保存的数据
+            loadSavedData();
+            
+            // 设置事件监听器
+            setupEventListeners();
+            
+            // 清理现有时间格式（移除冒号）
+            cleanupTimeFormat();
+        }
+        
+        // 清理时间格式，移除前导冒号
+        function cleanupTimeFormat() {
+            // 清理classTimes数组
+            classTimes = classTimes.map(time => time.replace(/^:/, '').trim());
+            
+            // 更新显示
+            document.querySelectorAll('.time-slot').forEach((slot, index) => {
+                const timeEdit = slot.querySelector('.time-edit');
+                if (timeEdit && classTimes[index]) {
+                    timeEdit.textContent = classTimes[index];
+                }
+            });
+        }
+        
+        // 更新当前日期显示
+        function updateCurrentDate() {
+            const today = new Date();
+            const todayDateStr = formatDate(today);
+            
+            // 计算当前是第几周
+            const calculatedWeek = calculateCurrentWeek();
+            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            
+            // 如果是周末（周六或周日），显示下周的课程表
+            if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
+                // 显示下周的课程表
+                if (isCurrentWeek) {
+                    currentWeek = calculatedWeek + 1;
+                    if (currentWeek > totalWeeks) {
+                        currentWeek = totalWeeks;
+                    }
+                }
+                selectedDay = -1; // 标记为周末
+                
+                // 显示周末提示
+                document.getElementById('weekendNoteInfo').style.display = 'block';
+            } else {
+                // 工作日，显示本周课程表
+                if (isCurrentWeek) {
+                    currentWeek = calculatedWeek;
+                }
+                selectedDay = currentDayOfWeek - 1; // 转换为0-4（周一到周五）
+                
+                // 隐藏周末提示
+                document.getElementById('weekendNoteInfo').style.display = 'none';
+            }
+            
+            // 确定单双周（基于当前周数）
+            currentWeekType = currentWeek % 2 === 1 ? 'odd' : 'even';
+            document.getElementById('weekTypeDisplay').textContent = currentWeekType === 'odd' ? '单周' : '双周';
+            
+            // 更新日期显示
+            document.getElementById('currentDate').textContent = `${todayDateStr} 第${currentWeek}/${totalWeeks}周`;
+            
+            // 更新周一到周五的日期
+            updateWeekdayDates();
+            
+            // 更新课程表单双周显示
+            updateWeekTypeDisplay();
+            
+            // 更新"本周"按钮状态
+            updateCurrentWeekButton();
+            
+            // 更新备注标题
+            updateNotesHeader();
+        }
+        
+        // 计算当前日期对应的周数
+        function calculateCurrentWeek() {
+            const today = new Date();
+            // 计算从起始日期到今天的毫秒数差
+            const timeDiff = today.getTime() - startDate.getTime();
+            // 计算天数差
+            const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+            // 计算周数（向上取整，因为第一周从第一天开始）
+            let weekNumber = Math.floor(dayDiff / 7) + 1;
+            
+            // 确保周数在1-25之间
+            weekNumber = Math.max(1, Math.min(weekNumber, totalWeeks));
+            
+            return weekNumber;
+        }
+        
+        // 格式化日期为YYYY/MM/DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+        }
+        
+        // 更新周类型显示
+        function updateWeekTypeDisplay() {
+            document.getElementById('weekTypeDisplay').textContent = currentWeekType === 'odd' ? '单周' : '双周';
+            
+            // 更新课程表单双周显示
+            document.querySelectorAll('.course-cell').forEach(cell => {
+                cell.className = cell.className.replace('odd-week', '').replace('even-week', '').trim();
+                cell.classList.add(currentWeekType === 'odd' ? 'odd-week' : 'even-week');
+            });
+        }
+        
+        // 更新"本周"按钮状态
+        function updateCurrentWeekButton() {
+            const currentWeekBtn = document.getElementById('currentWeek');
+            const calculatedWeek = calculateCurrentWeek();
+            const today = new Date();
+            const currentDayOfWeek = today.getDay();
+            
+            // 如果是周末，需要显示下周
+            let targetWeek = calculatedWeek;
+            if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
+                targetWeek = calculatedWeek + 1;
+                if (targetWeek > totalWeeks) {
+                    targetWeek = totalWeeks;
+                }
+            }
+            
+            if (currentWeek === targetWeek) {
+                // 如果当前显示的是当天所在的周（或周末的下周）
+                currentWeekBtn.textContent = '本周';
+                currentWeekBtn.classList.remove('back-to-current');
+                currentWeekBtn.classList.add('current-week');
+                isCurrentWeek = true;
+            } else {
+                // 如果当前显示的不是当天所在的周
+                currentWeekBtn.textContent = '回到本周';
+                currentWeekBtn.classList.remove('current-week');
+                currentWeekBtn.classList.add('back-to-current');
+                isCurrentWeek = false;
+            }
+        }
+        
+        // 更新备注标题
+        function updateNotesHeader() {
+            const today = new Date();
+            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const month = today.getMonth() + 1;
+            const day = today.getDate();
+            
+            let dayName = '';
+            switch(currentDayOfWeek) {
+                case 0: dayName = '周日'; break;
+                case 1: dayName = '周一'; break;
+                case 2: dayName = '周二'; break;
+                case 3: dayName = '周三'; break;
+                case 4: dayName = '周四'; break;
+                case 5: dayName = '周五'; break;
+                case 6: dayName = '周六'; break;
+            }
+            
+            document.getElementById('currentNoteDay').textContent = `${dayName} (${month}/${day}) 当天备注`;
+        }
+        
+        // 更新周一到周五的日期
+        function updateWeekdayDates() {
+            // 计算第一周的周一
+            const startDayOfWeek = startDate.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            const firstMonday = new Date(startDate);
+            
+            // 调整到第一周的周一
+            if (startDayOfWeek === 0) {
+                firstMonday.setDate(startDate.getDate() - 6); // 如果起始日是周日，周一就是前6天
+            } else {
+                firstMonday.setDate(startDate.getDate() - (startDayOfWeek - 1)); // 调整到周一
+            }
+            
+            // 计算当前周的周一（根据当前周数）
+            const currentWeekMonday = new Date(firstMonday);
+            currentWeekMonday.setDate(firstMonday.getDate() + (currentWeek - 1) * 7);
+            
+            // 清空日期数据
+            currentDateData = {};
+            
+            // 更新周一到周五的日期显示
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(currentWeekMonday);
+                date.setDate(currentWeekMonday.getDate() + i);
+                
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                
+                // 存储日期数据
+                currentDateData[i] = { month, day, dateObj: date };
+            }
+            
+            // 加载当天的备注
+            loadDailyNotes();
+        }
+        
+        // 生成课程表
+        function generateTimetable() {
+            const timetableDiv = document.getElementById('timetable');
+            timetableDiv.innerHTML = '';
+            
+            // 第一行第一个格子（左上角）
+            const cornerCell = document.createElement('div');
+            cornerCell.className = 'corner-cell';
+            cornerCell.innerHTML = '节次/星期';
+            timetableDiv.appendChild(cornerCell);
+            
+            // 第一行的周一到周五标题（包含日期）
+            const weekdays = ['周一', '周二', '周三', '周四', '周五'];
+            for (let j = 0; j < 5; j++) {
+                const weekdayCell = document.createElement('div');
+                weekdayCell.className = 'weekday-cell';
+                
+                // 获取日期信息
+                const dateInfo = currentDateData[j] || { month: 12, day: 26 };
+                const month = dateInfo.month || 12;
+                const day = dateInfo.day || 26;
+                
+                weekdayCell.innerHTML = `${weekdays[j]}<br><span style="font-size:0.6rem">${month}/${day}</span>`;
+                weekdayCell.dataset.day = j;
+                
+                // 初始选中状态
+                const today = new Date();
+                const currentDayOfWeek = today.getDay();
+                
+                // 如果不是周末，且当前是工作日，设置选中状态
+                if (currentDayOfWeek >= 1 && currentDayOfWeek <= 5) {
+                    if (j === currentDayOfWeek - 1) {
+                        weekdayCell.classList.add('selected');
+                    }
+                } else {
+                    // 周末时，默认选中周一
+                    if (j === 0) {
+                        weekdayCell.classList.add('selected');
+                    }
+                }
+                
+                // 点击事件
+                weekdayCell.addEventListener('click', () => {
+                    // 移除所有标题的选中状态
+                    document.querySelectorAll('.weekday-cell').forEach(cell => {
+                        cell.classList.remove('selected');
+                    });
+                    
+                    // 添加当前标题的选中状态
+                    weekdayCell.classList.add('selected');
+                    
+                    // 更新选中的天
+                    selectedDay = j;
+                    
+                    // 更新备注标题（显示选中的日期）
+                    const weekdays = ['周一', '周二', '周三', '周四', '周五'];
+                    const dateInfo = currentDateData[j] || { month: 12, day: 26 };
+                    const month = dateInfo.month || 12;
+                    const day = dateInfo.day || 26;
+                    document.getElementById('currentNoteDay').textContent = `${weekdays[j]} (${month}/${day}) 当天备注`;
+                    
+                    // 加载当天的备注
+                    loadDailyNotes();
+                });
+                
+                timetableDiv.appendChild(weekdayCell);
+            }
+            
+            // 生成时间列和课程单元格
+            for (let i = 0; i < 7; i++) {
+                const timeSlot = document.createElement('div');
+                timeSlot.className = 'time-slot';
+                timeSlot.innerHTML = `
+                    <div class="time-label">第${i+1}节</div>
+                    <div class="time-edit">${classTimes[i]}</div>
+                `;
+                timetableDiv.appendChild(timeSlot);
+                
+                // 生成每天的课程单元格
+                for (let j = 0; j < 5; j++) {
+                    const courseCell = document.createElement('div');
+                    courseCell.className = `course-cell ${currentWeekType === 'odd' ? 'odd-week' : 'even-week'}`;
+                    courseCell.dataset.day = j;
+                    courseCell.dataset.slot = i;
+                    
+                    // 课程内容容器
+                    const courseContent = document.createElement('div');
+                    courseContent.className = 'course-content';
+                    courseCell.appendChild(courseContent);
+                    
+                    // 点击事件 - 短按编辑
+                    courseCell.addEventListener('click', () => {
+                        if (!isLongPress) {
+                            selectedCell = courseCell;
+                            const day = parseInt(selectedCell.dataset.day);
+                            const slot = parseInt(selectedCell.dataset.slot);
+                            openCourseEditor(day, slot);
+                        }
+                        isLongPress = false;
+                    });
+                    
+                    // 长按事件 - 长按删除
+                    courseCell.addEventListener('mousedown', (e) => {
+                        startLongPress(e, courseCell);
+                    });
+                    
+                    courseCell.addEventListener('touchstart', (e) => {
+                        startLongPress(e, courseCell);
+                    });
+                    
+                    courseCell.addEventListener('mouseup', cancelLongPress);
+                    courseCell.addEventListener('mouseleave', cancelLongPress);
+                    courseCell.addEventListener('touchend', cancelLongPress);
+                    courseCell.addEventListener('touchcancel', cancelLongPress);
+                    
+                    timetableDiv.appendChild(courseCell);
+                }
+            }
+            
+            // 更新课程内容
+            updateCourseDisplay();
+        }
+        
+        // 开始长按
+        function startLongPress(e, cell) {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                selectedCell = cell;
+                const day = parseInt(selectedCell.dataset.day);
+                const slot = parseInt(selectedCell.dataset.slot);
+                openDeleteModal(day, slot);
+            }, 500); // 长按500毫秒触发
+        }
+        
+        // 取消长按
+        function cancelLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+        
+        // 打开课程编辑器
+        function openCourseEditor(day, slot) {
+            const modal = document.getElementById('courseModal');
+            
+            // 设置模态框标题
+            const weekdays = ['周一', '周二', '周三', '周四', '周五'];
+            const dateInfo = currentDateData[day] || { month: 12, day: 26 };
+            document.getElementById('modalHeader').textContent = `编辑课程 - ${weekdays[day]} 第${slot+1}节`;
+            
+            // 检查当前周是否有数据
+            const currentWeekKey = `${currentWeek}_${day}_${slot}`;
+            if (courseData[currentWeekKey]) {
+                document.getElementById('courseSubject').value = courseData[currentWeekKey].subject || '';
+                document.getElementById('courseClass').value = courseData[currentWeekKey].class || '';
+                document.getElementById('courseRoom').value = courseData[currentWeekKey].room || '';
+                
+                // 设置颜色
+                selectedColor = courseData[currentWeekKey].color || 'black';
+                updateColorSelector(selectedColor);
+            } else {
+                // 如果没有当前周的数据，检查是否有单双周数据
+                document.getElementById('courseSubject').value = '';
+                document.getElementById('courseClass').value = '';
+                document.getElementById('courseRoom').value = '';
+                selectedColor = 'black';
+                updateColorSelector('black');
+            }
+            
+            // 设置默认保存选项
+            document.getElementById('saveThisWeek').checked = true;
+            
+            // 加载历史记录
+            loadHistoryLists();
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 打开删除模态框
+        function openDeleteModal(day, slot) {
+            const modal = document.getElementById('deleteModal');
+            
+            // 设置默认删除选项
+            document.getElementById('deleteThisLesson').checked = true;
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 更新颜色选择器
+        function updateColorSelector(color) {
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.color === color) {
+                    option.classList.add('selected');
+                }
+            });
+        }
+        
+        // 保存课程 - 修复BUG：仅保存到本周时只保存当前周
+        function saveCourse() {
+            if (!selectedCell) {
+                alert('请先选择要编辑的课程单元格');
+                return;
+            }
+            
+            const day = parseInt(selectedCell.dataset.day);
+            const slot = parseInt(selectedCell.dataset.slot);
+            const subject = document.getElementById('courseSubject').value.trim();
+            const classVal = document.getElementById('courseClass').value.trim();
+            const room = document.getElementById('courseRoom').value.trim();
+            
+            // 获取保存选项
+            const saveOption = document.querySelector('input[name="saveOption"]:checked').value;
+            
+            // 根据保存选项处理数据
+            if (saveOption === 'thisWeek') {
+                // 仅保存到本周 - 只保存当前周
+                const courseKey = `${currentWeek}_${day}_${slot}`;
+                if (subject || classVal || room) {
+                    courseData[courseKey] = { 
+                        subject, 
+                        class: classVal, 
+                        room,
+                        color: selectedColor,
+                        saveType: 'thisWeek' // 标记保存类型
+                    };
+                    
+                    // 添加到历史记录
+                    addToHistory('subjects', subject);
+                    addToHistory('classes', classVal);
+                    addToHistory('rooms', room);
+                } else {
+                    delete courseData[courseKey];
+                }
+            } else if (saveOption === 'allOdd') {
+                // 保存到全部单周
+                for (let week = 1; week <= totalWeeks; week += 2) {
+                    const courseKey = `${week}_${day}_${slot}`;
+                    if (subject || classVal || room) {
+                        courseData[courseKey] = { 
+                            subject, 
+                            class: classVal, 
+                            room,
+                            color: selectedColor,
+                            saveType: 'allOdd'
+                        };
+                    } else {
+                        delete courseData[courseKey];
+                    }
+                }
+                // 添加到历史记录
+                if (subject || classVal || room) {
+                    addToHistory('subjects', subject);
+                    addToHistory('classes', classVal);
+                    addToHistory('rooms', room);
+                }
+            } else if (saveOption === 'allEven') {
+                // 保存到全部双周
+                for (let week = 2; week <= totalWeeks; week += 2) {
+                    const courseKey = `${week}_${day}_${slot}`;
+                    if (subject || classVal || room) {
+                        courseData[courseKey] = { 
+                            subject, 
+                            class: classVal, 
+                            room,
+                            color: selectedColor,
+                            saveType: 'allEven'
+                        };
+                    } else {
+                        delete courseData[courseKey];
+                    }
+                }
+                // 添加到历史记录
+                if (subject || classVal || room) {
+                    addToHistory('subjects', subject);
+                    addToHistory('classes', classVal);
+                    addToHistory('rooms', room);
+                }
+            } else if (saveOption === 'allWeeks') {
+                // 保存到全部单双周
+                for (let week = 1; week <= totalWeeks; week++) {
+                    const courseKey = `${week}_${day}_${slot}`;
+                    if (subject || classVal || room) {
+                        courseData[courseKey] = { 
+                            subject, 
+                            class: classVal, 
+                            room,
+                            color: selectedColor,
+                            saveType: 'allWeeks'
+                        };
+                    } else {
+                        delete courseData[courseKey];
+                    }
+                }
+                // 添加到历史记录
+                if (subject || classVal || room) {
+                    addToHistory('subjects', subject);
+                    addToHistory('classes', classVal);
+                    addToHistory('rooms', room);
+                }
+            }
+            
+            // 更新显示
+            updateCourseDisplay();
+            
+            // 保存数据到本地
+            saveData();
+            
+            // 关闭模态框
+            closeCourseEditor();
+        }
+        
+        // 删除课程 - 修复BUG：只删除本节课时只删除当前周
+        function deleteCourse() {
+            if (!selectedCell) {
+                alert('请先选择要删除的课程单元格');
+                return;
+            }
+            
+            const day = parseInt(selectedCell.dataset.day);
+            const slot = parseInt(selectedCell.dataset.slot);
+            
+            // 获取删除选项
+            const deleteOption = document.querySelector('input[name="deleteOption"]:checked').value;
+            
+            // 根据删除选项处理数据
+            if (deleteOption === 'thisLesson') {
+                // 只删除本节课 - 只删除当前周的课程
+                const courseKey = `${currentWeek}_${day}_${slot}`;
+                delete courseData[courseKey];
+            } else if (deleteOption === 'allOdd') {
+                // 删除本节全部单周
+                for (let week = 1; week <= totalWeeks; week += 2) {
+                    const courseKey = `${week}_${day}_${slot}`;
+                    delete courseData[courseKey];
+                }
+            } else if (deleteOption === 'allEven') {
+                // 删除本节全部双周
+                for (let week = 2; week <= totalWeeks; week += 2) {
+                    const courseKey = `${week}_${day}_${slot}`;
+                    delete courseData[courseKey];
+                }
+            } else if (deleteOption === 'allWeeks') {
+                // 删除本节全部单双周
+                for (let week = 1; week <= totalWeeks; week++) {
+                    const courseKey = `${week}_${day}_${slot}`;
+                    delete courseData[courseKey];
+                }
+            }
+            
+            // 更新显示
+            updateCourseDisplay();
+            
+            // 保存数据到本地
+            saveData();
+            
+            // 关闭模态框
+            closeDeleteModal();
+        }
+        
+        // 关闭课程编辑器
+        function closeCourseEditor() {
+            document.getElementById('courseModal').style.display = 'none';
+            selectedCell = null;
+        }
+        
+        // 关闭删除模态框
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            selectedCell = null;
+        }
+        
+        // 更新课程显示
+        function updateCourseDisplay() {
+            const courseCells = document.querySelectorAll('.course-cell');
+            
+            courseCells.forEach(cell => {
+                const day = parseInt(cell.dataset.day);
+                const slot = parseInt(cell.dataset.slot);
+                const courseKey = `${currentWeek}_${day}_${slot}`;
+                
+                // 获取或创建课程内容容器
+                let courseContent = cell.querySelector('.course-content');
+                if (!courseContent) {
+                    courseContent = document.createElement('div');
+                    courseContent.className = 'course-content';
+                    cell.appendChild(courseContent);
+                }
+                
+                // 清空内容
+                courseContent.innerHTML = '';
+                
+                if (courseData[courseKey]) {
+                    const course = courseData[courseKey];
+                    
+                    if (course.subject) {
+                        const subjectDiv = document.createElement('div');
+                        subjectDiv.className = 'course-subject';
+                        subjectDiv.textContent = course.subject;
+                        // 应用颜色
+                        subjectDiv.classList.add(`text-${course.color || 'black'}`);
+                        courseContent.appendChild(subjectDiv);
+                    }
+                    
+                    if (course.class || course.room) {
+                        const detailsDiv = document.createElement('div');
+                        detailsDiv.className = 'course-details';
+                        detailsDiv.textContent = `${course.class || ''} ${course.room || ''}`;
+                        courseContent.appendChild(detailsDiv);
+                    }
+                }
+                // 没有数据时不显示任何内容，保持空白
+                
+                // 确保单双周样式正确
+                cell.className = 'course-cell';
+                if (currentWeek % 2 === 1) {
+                    cell.classList.add('odd-week');
+                } else {
+                    cell.classList.add('even-week');
+                }
+            });
+        }
+        
+        // 打开时间设置
+        function openTimeSettings() {
+            const modal = document.getElementById('timeModal');
+            const timeInputsDiv = document.getElementById('timeInputs');
+            timeInputsDiv.innerHTML = '';
+            
+            // 生成7个时间输入框
+            for (let i = 0; i < 7; i++) {
+                const timeInputGroup = document.createElement('div');
+                timeInputGroup.className = 'time-input-group';
+                timeInputGroup.innerHTML = `
+                    <label>第${i+1}节:</label>
+                    <input type="text" class="time-input" id="time-${i}" value="${classTimes[i]}" placeholder="例如: 08:00-08:45">
+                `;
+                timeInputsDiv.appendChild(timeInputGroup);
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 保存时间设置 - 修复BUG：确保时间数据正确保存
+        function saveTimeSettings() {
+            for (let i = 0; i < 7; i++) {
+                const timeInput = document.getElementById(`time-${i}`);
+                // 移除时间前的冒号
+                let timeValue = timeInput.value.trim();
+                // 如果时间以冒号开头，则删除
+                if (timeValue.startsWith(':')) {
+                    timeValue = timeValue.substring(1).trim();
+                }
+                classTimes[i] = timeValue;
+            }
+            
+            // 更新课程表中的时间显示
+            document.querySelectorAll('.time-slot').forEach((slot, index) => {
+                const timeEdit = slot.querySelector('.time-edit');
+                if (timeEdit && classTimes[index]) {
+                    // 确保显示的时间没有前导冒号
+                    timeEdit.textContent = classTimes[index].replace(/^:/, '');
+                }
+            });
+            
+            // 保存数据到本地
+            saveData();
+            
+            // 关闭模态框
+            closeTimeSettings();
+        }
+        
+        // 关闭时间设置
+        function closeTimeSettings() {
+            document.getElementById('timeModal').style.display = 'none';
+        }
+        
+        // 打开起始日期设置
+        function openStartDateModal() {
+            const modal = document.getElementById('startDateModal');
+            // 设置当前日期
+            document.getElementById('startDateInput').value = formatDateForInput(startDate);
+            modal.style.display = 'flex';
+        }
+        
+        // 保存起始日期
+        function saveStartDate() {
+            const dateInput = document.getElementById('startDateInput').value;
+            if (dateInput) {
+                startDate = new Date(dateInput);
+                updateCurrentDate();
+                updateWeekDisplay();
+                saveData();
+            }
+            closeStartDateModal();
+        }
+        
+        // 关闭起始日期设置
+        function closeStartDateModal() {
+            document.getElementById('startDateModal').style.display = 'none';
+        }
+        
+        // 格式化日期为YYYY-MM-DD格式
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // 切换搜索框显示
+        function toggleSearchBox() {
+            const searchBox = document.getElementById('searchBox');
+            const searchInput = document.getElementById('searchNotes');
+            
+            if (isSearchActive) {
+                searchBox.classList.remove('active');
+                searchInput.blur();
+                hideSearchResults();
+            } else {
+                searchBox.classList.add('active');
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 100);
+            }
+            
+            isSearchActive = !isSearchActive;
+        }
+        
+        // 隐藏搜索结果
+        function hideSearchResults() {
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.style.display = 'none';
+        }
+        
+        // 加载当天的备注
+        function loadDailyNotes() {
+            const today = new Date();
+            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            
+            let noteKey;
+            if (selectedDay === -1) {
+                // 周末情况
+                noteKey = `notes-${currentWeek}-weekend-${currentDayOfWeek}`;
+            } else {
+                // 工作日情况
+                noteKey = `notes-${currentWeek}-${selectedDay}`;
+            }
+            
+            document.getElementById('dailyNotes').value = notesData[noteKey] || '';
+        }
+        
+        // 保存当天的备注
+        function saveDailyNotes() {
+            const today = new Date();
+            const currentDayOfWeek = today.getDay(); // 0=周日, 1=周一, ..., 6=周六
+            
+            let noteKey;
+            if (selectedDay === -1) {
+                // 周末情况
+                noteKey = `notes-${currentWeek}-weekend-${currentDayOfWeek}`;
+            } else {
+                // 工作日情况
+                noteKey = `notes-${currentWeek}-${selectedDay}`;
+            }
+            
+            const notes = document.getElementById('dailyNotes').value.trim();
+            
+            if (notes) {
+                notesData[noteKey] = notes;
+            } else {
+                delete notesData[noteKey];
+            }
+            
+            saveData();
+        }
+        
+        // 搜索备注
+        function searchNotes() {
+            const searchTerm = document.getElementById('searchNotes').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!searchTerm) {
+                resultsDiv.style.display = 'none';
+                resultsDiv.innerHTML = '';
+                return;
+            }
+            
+            // 查找包含搜索关键词的备注
+            searchResults = [];
+            
+            // 搜索所有周的备注
+            for (let week = 1; week <= totalWeeks; week++) {
+                // 搜索工作日备注
+                for (let day = 0; day < 5; day++) {
+                    const noteKey = `notes-${week}-${day}`;
+                    if (notesData[noteKey] && notesData[noteKey].toLowerCase().includes(searchTerm)) {
+                        // 获取日期信息
+                        const weekdays = ['周一', '周二', '周三', '周四', '周五'];
+                        
+                        // 计算具体日期
+                        const weekStart = new Date(startDate);
+                        weekStart.setDate(startDate.getDate() + (week - 1) * 7);
+                        
+                        // 找到该周的周一
+                        const weekMonday = new Date(weekStart);
+                        weekMonday.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1));
+                        
+                        // 计算具体日期
+                        const specificDate = new Date(weekMonday);
+                        specificDate.setDate(weekMonday.getDate() + day);
+                        
+                        const month = specificDate.getMonth() + 1;
+                        const dayOfMonth = specificDate.getDate();
+                        
+                        searchResults.push({
+                            week: week,
+                            day: day,
+                            dayName: weekdays[day],
+                            month: month,
+                            dayOfMonth: dayOfMonth,
+                            notes: notesData[noteKey]
+                        });
+                    }
+                }
+                
+                // 搜索周末备注
+                for (let weekendDay = 0; weekendDay <= 6; weekendDay++) {
+                    if (weekendDay === 0 || weekendDay === 6) {
+                        const noteKey = `notes-${week}-weekend-${weekendDay}`;
+                        if (notesData[noteKey] && notesData[noteKey].toLowerCase().includes(searchTerm)) {
+                            const dayName = weekendDay === 0 ? '周日' : '周六';
+                            
+                            // 计算具体日期
+                            const weekStart = new Date(startDate);
+                            weekStart.setDate(startDate.getDate() + (week - 1) * 7);
+                            
+                            // 找到该周的周一
+                            const weekMonday = new Date(weekStart);
+                            weekMonday.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1));
+                            
+                            // 计算具体日期（周六是+5，周日是+6）
+                            const specificDate = new Date(weekMonday);
+                            specificDate.setDate(weekMonday.getDate() + (weekendDay === 6 ? 5 : 6));
+                            
+                            const month = specificDate.getMonth() + 1;
+                            const dayOfMonth = specificDate.getDate();
+                            
+                            searchResults.push({
+                                week: week,
+                                day: weekendDay === 6 ? 5 : 6, // 周六为5，周日为6
+                                dayName: dayName,
+                                month: month,
+                                dayOfMonth: dayOfMonth,
+                                notes: notesData[noteKey]
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // 显示搜索结果
+            if (searchResults.length > 0) {
+                resultsDiv.innerHTML = '<strong>搜索结果：</strong>';
+                
+                searchResults.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.innerHTML = `<strong>第${result.week}周 ${result.dayName} (${result.month}/${result.dayOfMonth})</strong><br>${result.notes.substring(0, 30)}${result.notes.length > 30 ? '...' : ''}`;
+                    resultItem.dataset.week = result.week;
+                    resultItem.dataset.day = result.day;
+                    
+                    resultItem.addEventListener('click', () => {
+                        // 跳转到对应的周和日期
+                        currentWeek = result.week;
+                        
+                        // 判断是工作日还是周末
+                        if (result.day >= 0 && result.day <= 4) {
+                            selectedDay = result.day;
+                            isCurrentWeek = false;
+                            
+                            // 隐藏周末提示
+                            document.getElementById('weekendNoteInfo').style.display = 'none';
+                        } else {
+                            selectedDay = -1; // 周末
+                            isCurrentWeek = true;
+                            
+                            // 显示周末提示
+                            document.getElementById('weekendNoteInfo').style.display = 'block';
+                        }
+                        
+                        // 更新显示
+                        updateWeekDisplay();
+                        
+                        // 隐藏搜索结果
+                        resultsDiv.style.display = 'none';
+                        
+                        // 清空搜索框
+                        document.getElementById('searchNotes').value = '';
+                        toggleSearchBox();
+                    });
+                    
+                    resultsDiv.appendChild(resultItem);
+                });
+                
+                resultsDiv.style.display = 'block';
+            } else {
+                resultsDiv.innerHTML = '<div>未找到包含该关键词的备注。</div>';
+                resultsDiv.style.display = 'block';
+            }
+        }
+        
+        // 清空课程表
+        function clearTimetable() {
+            if (confirm('确定要清空整个课程表吗？此操作不可撤销。')) {
+                courseData = {};
+                updateCourseDisplay();
+                saveData();
+            }
+        }
+        
+        // 导出数据 - 修复BUG：确保导出时时间格式正确
+        function exportData() {
+            // 创建简化的数据结构
+            const exportData = {
+                classTimes: classTimes,
+                courses: {}
+            };
+            
+            // 只导出课程信息，不导出备注
+            for (const key in courseData) {
+                if (courseData.hasOwnProperty(key)) {
+                    exportData.courses[key] = courseData[key];
+                }
+            }
+            
+            // 转换为TXT格式
+            let txtContent = "教师课程表数据\n";
+            txtContent += "================\n\n";
+            txtContent += "课程时间安排:\n";
+            classTimes.forEach((time, index) => {
+                // 确保导出时时间没有前导冒号
+                const cleanTime = time.replace(/^:/, '');
+                txtContent += `第${index+1}节: ${cleanTime}\n`;
+            });
+            
+            txtContent += "\n课程安排:\n";
+            // 按星期和节次排序
+            const days = ['周一', '周二', '周三', '周四', '周五'];
+            for (let day = 0; day < 5; day++) {
+                for (let slot = 0; slot < 7; slot++) {
+                    let hasOddWeek = false;
+                    let hasEvenWeek = false;
+                    let oddWeekData = null;
+                    let evenWeekData = null;
+                    
+                    // 检查单周和双周
+                    for (let week = 1; week <= totalWeeks; week++) {
+                        const courseKey = `${week}_${day}_${slot}`;
+                        if (courseData[courseKey]) {
+                            if (week % 2 === 1) {
+                                hasOddWeek = true;
+                                oddWeekData = courseData[courseKey];
+                            } else {
+                                hasEvenWeek = true;
+                                evenWeekData = courseData[courseKey];
+                            }
+                        }
+                    }
+                    
+                    if (hasOddWeek || hasEvenWeek) {
+                        txtContent += `${days[day]} 第${slot+1}节:\n`;
+                        
+                        if (hasOddWeek && oddWeekData) {
+                            txtContent += `  单周: ${oddWeekData.subject || ''} | ${oddWeekData.class || ''} | ${oddWeekData.room || ''}\n`;
+                        }
+                        
+                        if (hasEvenWeek && evenWeekData) {
+                            txtContent += `  双周: ${evenWeekData.subject || ''} | ${oddWeekData.class || ''} | ${oddWeekData.room || ''}\n`;
+                        }
+                    }
+                }
+            }
+            
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `课程表_${new Date().toLocaleDateString()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 导入数据 - 修复的解析逻辑
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.txt';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const content = event.target.result;
+                        
+                        // 解析TXT文件
+                        const lines = content.split('\n');
+                        let parsingTimes = false;
+                        let parsingCourses = false;
+                        let currentDay = -1;
+                        let currentSlot = -1;
+                        
+                        // 临时存储导入的数据
+                        const importedCourseData = {};
+                        const importedClassTimes = [...classTimes]; // 复制默认时间
+                        
+                        // 星期映射
+                        const dayMap = {
+                            '周一': 0,
+                            '周二': 1,
+                            '周三': 2,
+                            '周四': 3,
+                            '周五': 4
+                        };
+                        
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            
+                            if (line === "课程时间安排:" || line === "课程时间安排") {
+                                parsingTimes = true;
+                                parsingCourses = false;
+                                continue;
+                            } else if (line === "课程安排:" || line === "课程安排") {
+                                parsingTimes = false;
+                                parsingCourses = true;
+                                continue;
+                            } else if (line.startsWith("教师课程表数据") || line.startsWith("===") || line === "") {
+                                continue;
+                            }
+                            
+                            if (parsingTimes && line.startsWith("第")) {
+                                // 解析时间
+                                const match = line.match(/第\s*(\d+)\s*[节:]?\s*(.+)/);
+                                if (match) {
+                                    const slot = parseInt(match[1]) - 1;
+                                    const time = match[2].trim();
+                                    if (slot >= 0 && slot < 7) {
+                                        importedClassTimes[slot] = time;
+                                    }
+                                }
+                            } else if (parsingCourses) {
+                                // 解析课程
+                                const dayMatch = line.match(/(周一|周二|周三|周四|周五)\s*第\s*(\d+)\s*[节:]/);
+                                if (dayMatch) {
+                                    currentDay = dayMap[dayMatch[1]];
+                                    currentSlot = parseInt(dayMatch[2]) - 1;
+                                    continue;
+                                }
+                                
+                                // 检查是否是单周或双周课程行
+                                if (line.includes("单周:") || line.includes("双周:")) {
+                                    const isOdd = line.includes("单周:");
+                                    const prefix = isOdd ? "单周:" : "双周:";
+                                    const courseInfoStr = line.substring(line.indexOf(prefix) + prefix.length).trim();
+                                    
+                                    if (currentDay !== -1 && currentSlot !== -1 && courseInfoStr) {
+                                        const courseInfo = courseInfoStr.split('|').map(s => s.trim());
+                                        
+                                        if (isOdd) {
+                                            // 保存到所有单周
+                                            for (let week = 1; week <= totalWeeks; week += 2) {
+                                                const courseKey = `${week}_${currentDay}_${currentSlot}`;
+                                                importedCourseData[courseKey] = {
+                                                    subject: courseInfo[0] || '',
+                                                    class: courseInfo[1] || '',
+                                                    room: courseInfo[2] || '',
+                                                    color: 'black',
+                                                    saveType: 'allOdd'
+                                                };
+                                            }
+                                        } else {
+                                            // 保存到所有双周
+                                            for (let week = 2; week <= totalWeeks; week += 2) {
+                                                const courseKey = `${week}_${currentDay}_${currentSlot}`;
+                                                importedCourseData[courseKey] = {
+                                                    subject: courseInfo[0] || '',
+                                                    class: courseInfo[1] || '',
+                                                    room: courseInfo[2] || '',
+                                                    color: 'black',
+                                                    saveType: 'allEven'
+                                                };
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 将导入的数据合并到现有数据中
+                        Object.assign(courseData, importedCourseData);
+                        classTimes = importedClassTimes;
+                        
+                        // 更新界面
+                        updateCourseDisplay();
+                        
+                        // 更新课程表中的时间显示
+                        document.querySelectorAll('.time-slot').forEach((slot, index) => {
+                            const timeEdit = slot.querySelector('.time-edit');
+                            if (timeEdit && classTimes[index]) {
+                                timeEdit.textContent = classTimes[index];
+                            }
+                        });
+                        
+                        // 保存数据到本地
+                        saveData();
+                        
+                        alert('数据导入成功！');
+                    } catch (error) {
+                        console.error('导入失败:', error);
+                        alert('导入失败：文件格式不正确。请确保文件格式正确。');
+                    }
+                };
+                
+                reader.onerror = function(event) {
+                    console.error('文件读取失败:', event.target.error);
+                    alert('文件读取失败，请重试。');
+                };
+                
+                reader.readAsText(file, 'UTF-8');
+            };
+            
+            input.click();
+        }
+        
+        // 保存数据到本地 - 修复BUG：确保时间数据正确保存
+        function saveData() {
+            // 准备数据
+            const data = {
+                courseData,
+                notesData,
+                classTimes,
+                historyData,
+                currentWeek,
+                currentWeekType,
+                startDate: startDate.toISOString().split('T')[0]
+            };
+            
+            // 保存到本地存储
+            localStorage.setItem('teacherTimetable', JSON.stringify(data));
+        }
+        
+        // 从本地存储加载数据 - 修复BUG：确保时间数据正确加载
+        function loadSavedData() {
+            const savedData = localStorage.getItem('teacherTimetable');
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    if (data.courseData) courseData = data.courseData;
+                    if (data.notesData) notesData = data.notesData;
+                    if (data.classTimes) classTimes = data.classTimes;
+                    if (data.historyData) historyData = data.historyData;
+                    if (data.currentWeek) currentWeek = data.currentWeek;
+                    if (data.currentWeekType) currentWeekType = data.currentWeekType;
+                    if (data.startDate) startDate = new Date(data.startDate);
+                    
+                    // 更新界面
+                    updateCourseDisplay();
+                    loadDailyNotes();
+                    updateWeekTypeDisplay();
+                } catch (error) {
+                    console.error('加载本地数据时出错:', error);
+                }
+            }
+        }
+        
+        // 添加到历史记录
+        function addToHistory(type, value) {
+            if (!value) return;
+            
+            // 如果值不在历史记录中，添加到列表开头
+            if (!historyData[type].includes(value)) {
+                historyData[type].unshift(value);
+                
+                // 限制历史记录数量
+                if (historyData[type].length > 10) {
+                    historyData[type] = historyData[type].slice(0, 10);
+                }
+                
+                // 保存数据
+                saveData();
+            }
+        }
+        
+        // 加载历史记录列表
+        function loadHistoryLists() {
+            // 科目历史
+            const subjectList = document.getElementById('subjectHistoryList');
+            subjectList.innerHTML = '';
+            historyData.subjects.forEach(subject => {
+                if (subject) {
+                    const item = document.createElement('div');
+                    item.className = 'data-list-item';
+                    item.textContent = subject;
+                    item.addEventListener('click', () => {
+                        document.getElementById('courseSubject').value = subject;
+                        subjectList.style.display = 'none';
+                    });
+                    subjectList.appendChild(item);
+                }
+            });
+            
+            // 班级历史
+            const classList = document.getElementById('classHistoryList');
+            classList.innerHTML = '';
+            historyData.classes.forEach(className => {
+                if (className) {
+                    const item = document.createElement('div');
+                    item.className = 'data-list-item';
+                    item.textContent = className;
+                    item.addEventListener('click', () => {
+                        document.getElementById('courseClass').value = className;
+                        classList.style.display = 'none';
+                    });
+                    classList.appendChild(item);
+                }
+            });
+            
+            // 教室历史
+            const roomList = document.getElementById('roomHistoryList');
+            roomList.innerHTML = '';
+            historyData.rooms.forEach(room => {
+                if (room) {
+                    const item = document.createElement('div');
+                    item.className = 'data-list-item';
+                    item.textContent = room;
+                    item.addEventListener('click', () => {
+                        document.getElementById('courseRoom').value = room;
+                        roomList.style.display = 'none';
+                    });
+                    roomList.appendChild(item);
+                }
+            });
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 导入按钮
+            document.getElementById('importBtn').addEventListener('click', importData);
+            
+            // 导出按钮
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            
+            // 清空按钮
+            document.getElementById('clearBtn').addEventListener('click', clearTimetable);
+            
+            // 时间按钮
+            document.getElementById('timeBtn').addEventListener('click', openTimeSettings);
+            
+            // 日历按钮
+            document.getElementById('calendarBtn').addEventListener('click', openStartDateModal);
+            
+            // 搜索切换按钮
+            document.getElementById('searchToggle').addEventListener('click', toggleSearchBox);
+            
+            // 搜索输入框回车键
+            document.getElementById('searchNotes').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchNotes();
+                }
+            });
+            
+            // 点击页面其他地方关闭搜索框
+            document.addEventListener('click', function(e) {
+                const searchContainer = document.querySelector('.search-container');
+                const searchBox = document.getElementById('searchBox');
+                const searchToggle = document.getElementById('searchToggle');
+                
+                if (isSearchActive && !searchContainer.contains(e.target) && e.target !== searchToggle) {
+                    toggleSearchBox();
+                }
+            });
+            
+            // 周导航按钮
+            document.getElementById('prevWeek').addEventListener('click', () => {
+                if (currentWeek > 1) {
+                    currentWeek--;
+                    isCurrentWeek = false;
+                    // 根据周数确定单双周
+                    currentWeekType = currentWeek % 2 === 1 ? 'odd' : 'even';
+                    updateWeekDisplay();
+                }
+            });
+            
+            document.getElementById('currentWeek').addEventListener('click', () => {
+                const today = new Date();
+                const calculatedWeek = calculateCurrentWeek();
+                const currentDayOfWeek = today.getDay();
+                
+                // 如果是周末，显示下周
+                if (currentDayOfWeek === 0 || currentDayOfWeek === 6) {
+                    currentWeek = calculatedWeek + 1;
+                    if (currentWeek > totalWeeks) {
+                        currentWeek = totalWeeks;
+                    }
+                    selectedDay = -1; // 周末
+                    
+                    // 显示周末提示
+                    document.getElementById('weekendNoteInfo').style.display = 'block';
+                } else {
+                    currentWeek = calculatedWeek;
+                    selectedDay = currentDayOfWeek - 1; // 工作日
+                    
+                    // 隐藏周末提示
+                    document.getElementById('weekendNoteInfo').style.display = 'none';
+                }
+                
+                isCurrentWeek = true;
+                updateCurrentDate();
+                updateWeekDisplay();
+            });
+            
+            document.getElementById('nextWeek').addEventListener('click', () => {
+                if (currentWeek < totalWeeks) {
+                    currentWeek++;
+                    isCurrentWeek = false;
+                    // 根据周数确定单双周
+                    currentWeekType = currentWeek % 2 === 1 ? 'odd' : 'even';
+                    updateWeekDisplay();
+                }
+            });
+            
+            // 备注输入框失去焦点时保存
+            document.getElementById('dailyNotes').addEventListener('blur', saveDailyNotes);
+            
+            // 课程编辑模态框 - 保存按钮
+            document.getElementById('saveCourse').addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCourse();
+            });
+            
+            // 课程编辑模态框 - 取消按钮
+            document.getElementById('cancelCourse').addEventListener('click', closeCourseEditor);
+            
+            // 课程删除模态框 - 删除按钮
+            document.getElementById('confirmDelete').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('确定要删除这个课程吗？')) {
+                    deleteCourse();
+                }
+            });
+            
+            // 课程删除模态框 - 取消按钮
+            document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
+            
+            // 时间设置模态框
+            document.getElementById('saveTime').addEventListener('click', saveTimeSettings);
+            document.getElementById('cancelTime').addEventListener('click', closeTimeSettings);
+            
+            // 起始日期设置模态框
+            document.getElementById('saveStartDate').addEventListener('click', saveStartDate);
+            document.getElementById('cancelStartDate').addEventListener('click', closeStartDateModal);
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                const courseModal = document.getElementById('courseModal');
+                const deleteModal = document.getElementById('deleteModal');
+                const timeModal = document.getElementById('timeModal');
+                const startDateModal = document.getElementById('startDateModal');
+                
+                if (event.target === courseModal) {
+                    closeCourseEditor();
+                }
+                
+                if (event.target === deleteModal) {
+                    closeDeleteModal();
+                }
+                
+                if (event.target === timeModal) {
+                    closeTimeSettings();
+                }
+                
+                if (event.target === startDateModal) {
+                    closeStartDateModal();
+                }
+            });
+            
+            // 历史记录按钮点击事件
+            document.getElementById('subjectHistoryBtn').addEventListener('click', function() {
+                const list = document.getElementById('subjectHistoryList');
+                list.style.display = list.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            document.getElementById('classHistoryBtn').addEventListener('click', function() {
+                const list = document.getElementById('classHistoryList');
+                list.style.display = list.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            document.getElementById('roomHistoryBtn').addEventListener('click', function() {
+                const list = document.getElementById('roomHistoryList');
+                list.style.display = list.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // 点击页面其他地方关闭历史记录列表
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.input-container')) {
+                    document.querySelectorAll('.data-list').forEach(list => {
+                        list.style.display = 'none';
+                    });
+                }
+            });
+            
+            // 颜色选择器点击事件
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectedColor = this.dataset.color;
+                    updateColorSelector(selectedColor);
+                });
+            });
+        }
+        
+        // 更新周显示
+        function updateWeekDisplay() {
+            // 更新日期显示
+            const today = new Date();
+            const dateStr = formatDate(today);
+            document.getElementById('currentDate').textContent = `${dateStr} 第${currentWeek}/${totalWeeks}周`;
+            
+            // 更新单双周显示
+            updateWeekTypeDisplay();
+            
+            // 更新周一到周五的日期
+            updateWeekdayDates();
+            
+            // 重新生成课程表以更新日期
+            generateTimetable();
+            
+            // 更新"本周"按钮状态
+            updateCurrentWeekButton();
+            
+            // 更新备注标题
+            updateNotesHeader();
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
 </html>
