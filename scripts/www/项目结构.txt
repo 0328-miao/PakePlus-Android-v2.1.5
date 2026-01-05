@@ -1,0 +1,18 @@
+ShenjiMiaosuanApp/
+├── index.html                    # 主页面
+├── style.css                    # 样式文件
+├── script.js                    # 主逻辑
+├── manifest.json               # Web App清单
+├── service-worker.js           # 服务工作者(用于PWA)
+├── icons/                      # 应用图标
+│   ├── icon-72x72.png
+│   ├── icon-96x96.png
+│   ├── icon-128x128.png
+│   ├── icon-144x144.png
+│   ├── icon-152x152.png
+│   ├── icon-192x192.png
+│   ├── icon-384x384.png
+│   └── icon-512x512.png
+├── cordova-config.xml          # Cordova配置文件
+├── package.json                # Cordova项目配置
+└── README.md                   # 使用说明
