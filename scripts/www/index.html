@@ -1,11 +1,576 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4b6cb7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>神机妙算 - 语音答题</title>
+    
+    <!-- 引入CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- PWA支持 -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS图标 -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- 字体图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 离线字体 -->
+    <style>
+        @font-face {
+            font-family: 'ChineseFont';
+            src: url('data:font/woff2;base64,...') format('woff2');
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'ChineseFont', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h2>神机妙算</h2>
+            <p>正在加载...</p>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <!-- 头部 -->
+        <header class="app-header">
+            <div class="header-left">
+                <button id="menuToggle" class="icon-button">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="app-title">神机妙算</h1>
+            </div>
+            <div class="header-right">
+                <button id="voiceToggle" class="icon-button">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button id="fullscreenToggle" class="icon-button">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 侧边菜单 -->
+        <div id="sideMenu" class="side-menu">
+            <div class="menu-header">
+                <h3><i class="fas fa-user-circle"></i> 学生</h3>
+                <button id="closeMenu" class="icon-button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="menu-items">
+                <a href="#" class="menu-item active" data-screen="home">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+                <a href="#" class="menu-item" data-screen="practice">
+                    <i class="fas fa-pencil-alt"></i> 开始练习
+                </a>
+                <a href="#" class="menu-item" data-screen="history">
+                    <i class="fas fa-history"></i> 练习记录
+                </a>
+                <a href="#" class="menu-item" data-screen="achievements">
+                    <i class="fas fa-trophy"></i> 我的成就
+                </a>
+                <a href="#" class="menu-item" data-screen="settings">
+                    <i class="fas fa-cog"></i> 设置
+                </a>
+            </div>
+            
+            <div class="menu-footer">
+                <div class="student-info">
+                    <p><i class="fas fa-star"></i> 今日积分: <span id="todayPoints">0</span></p>
+                    <p><i class="fas fa-check-circle"></i> 连续学习: <span id="streakDays">0</span>天</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <main id="mainContent" class="main-content">
+            
+            <!-- 首页 -->
+            <div id="homeScreen" class="screen active">
+                <div class="welcome-card">
+                    <div class="welcome-header">
+                        <h2><i class="fas fa-smile"></i> 欢迎使用神机妙算！</h2>
+                        <p>数学小天才的练习乐园</p>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="action-card" data-action="practice">
+                            <div class="action-icon">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            <h3>开始练习</h3>
+                            <p>随机出题，语音答题</p>
+                        </div>
+                        
+                        <div class="action-card" data-action="challenge">
+                            <div class="action-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <h3>挑战模式</h3>
+                            <p>限时答题，挑战自我</p>
+                        </div>
+                        
+                        <div class="action-card" data-action="review">
+                            <div class="action-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3>复习错题</h3>
+                            <p>巩固练习，提高成绩</p>
+                        </div>
+                    </div>
+                    
+                    <div class="daily-goal">
+                        <h3><i class="fas fa-bullseye"></i> 今日目标</h3>
+                        <div class="goal-progress">
+                            <div class="goal-bar">
+                                <div id="goalProgress" class="goal-progress-fill"></div>
+                            </div>
+                            <span id="goalText">0/10 题</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon correct">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>总正确率</h4>
+                            <p id="totalAccuracy">0%</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon time">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>总练习时间</h4>
+                            <p id="totalTime">0分钟</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon streak">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>连续练习</h4>
+                            <p id="currentStreak">0天</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 练习模式选择 -->
+            <div id="practiceScreen" class="screen">
+                <div class="practice-header">
+                    <h2><i class="fas fa-graduation-cap"></i> 选择练习模式</h2>
+                    <p>选择适合你的练习方式</p>
+                </div>
+                
+                <div class="practice-modes">
+                    <div class="mode-card" data-mode="normal">
+                        <div class="mode-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>普通练习</h3>
+                        <p>自由练习，不限时间</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-question-circle"></i> 9道题目</span>
+                            <span><i class="fas fa-microphone"></i> 语音答题</span>
+                        </div>
+                        <button class="mode-start-btn" data-mode="normal">开始练习</button>
+                    </div>
+                    
+                    <div class="mode-card" data-mode="challenge">
+                        <div class="mode-icon">
+                            <i class="fas fa-stopwatch"></i>
+                        </div>
+                        <h3>挑战模式</h3>
+                        <p>限时挑战，提升速度</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-clock"></i> 5分钟倒计时</span>
+                            <span><i class="fas fa-trophy"></i> 得分排名</span>
+                        </div>
+                        <button class="mode-start-btn" data-mode="challenge">开始挑战</button>
+                    </div>
+                    
+                    <div class="mode-card" data-mode="exam">
+                        <div class="mode-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3>模拟考试</h3>
+                        <p>完整试卷，检验水平</p>
+                        <div class="mode-details">
+                            <span><i class="fas fa-list-ol"></i> 20道题目</span>
+                            <span><i class="fas fa-chart-bar"></i> 详细报告</span>
+                        </div>
+                        <button class="mode-start-btn" data-mode="exam">开始考试</button>
+                    </div>
+                </div>
+                
+                <div class="difficulty-section">
+                    <h3><i class="fas fa-sliders-h"></i> 难度设置</h3>
+                    <div class="difficulty-options">
+                        <div class="difficulty-option" data-difficulty="easy">
+                            <div class="diff-icon easy">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <h4>初级</h4>
+                            <p>1-6乘法</p>
+                        </div>
+                        
+                        <div class="difficulty-option active" data-difficulty="medium">
+                            <div class="diff-icon medium">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <h4>中级</h4>
+                            <p>1-9乘法</p>
+                        </div>
+                        
+                        <div class="difficulty-option" data-difficulty="hard">
+                            <div class="diff-icon hard">
+                                <i class="fas fa-mountain"></i>
+                            </div>
+                            <h4>高级</h4>
+                            <p>混合运算</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 答题界面 -->
+            <div id="testScreen" class="screen">
+                <div class="test-header">
+                    <div class="test-info">
+                        <div class="test-mode">
+                            <i class="fas fa-graduation-cap"></i> <span id="currentMode">普通练习</span>
+                        </div>
+                        <div class="test-stats">
+                            <span><i class="fas fa-check-circle"></i> <span id="testScore">0</span></span>
+                            <span><i class="fas fa-clock"></i> <span id="testTimer">00:00</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="question-counter">
+                        题目 <span id="currentQuestionNum">1</span>/<span id="totalQuestions">9</span>
+                    </div>
+                </div>
+                
+                <div class="question-container">
+                    <div id="questionDisplay" class="question-display">
+                        <!-- 题目将在这里显示 -->
+                    </div>
+                    
+                    <div class="voice-controls">
+                        <div id="voiceStatus" class="voice-status">
+                            <div class="status-icon">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                            <div class="status-text">
+                                点击按钮开始答题
+                            </div>
+                        </div>
+                        
+                        <div id="recognitionDisplay" class="recognition-display">
+                            准备识别语音...
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button id="startRecording" class="control-btn record-btn">
+                                <i class="fas fa-microphone"></i> 开始答题
+                            </button>
+                            <button id="skipQuestion" class="control-btn skip-btn">
+                                <i class="fas fa-forward"></i> 跳过
+                            </button>
+                            <button id="endTest" class="control-btn end-btn">
+                                <i class="fas fa-stop"></i> 结束
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="questionProgress" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="answer-feedback">
+                    <div id="feedbackCorrect" class="feedback correct" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <span>回答正确！</span>
+                    </div>
+                    <div id="feedbackIncorrect" class="feedback incorrect" style="display: none;">
+                        <i class="fas fa-times-circle"></i>
+                        <span>正确答案：<span id="correctAnswerDisplay"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 结果页面 -->
+            <div id="resultScreen" class="screen">
+                <div class="result-header">
+                    <h2><i class="fas fa-trophy"></i> 练习完成！</h2>
+                    <div class="result-score">
+                        <div class="score-circle">
+                            <span id="finalScoreDisplay">0</span>
+                            <small>/<span id="totalScoreDisplay">9</span></small>
+                        </div>
+                        <div class="score-label">得分</div>
+                    </div>
+                </div>
+                
+                <div class="result-details">
+                    <div class="detail-card">
+                        <div class="detail-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="detail-content">
+                            <h4>正确率</h4>
+                            <p id="accuracyRate">0%</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-card">
+                        <div class="detail-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="detail-content">
+                            <h4>用时</h4>
+                            <p id="timeUsed">00:00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-card">
+                        <div class="detail-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="detail-content">
+                            <h4>速度</h4>
+                            <p id="speedRate">0题/分</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-evaluation">
+                    <h3><i class="fas fa-award"></i> 评价</h3>
+                    <p id="evaluationText">继续努力！</p>
+                </div>
+                
+                <div class="result-actions">
+                    <button id="reviewAnswers" class="action-btn secondary">
+                        <i class="fas fa-redo"></i> 查看答案
+                    </button>
+                    <button id="nextPractice" class="action-btn primary">
+                        <i class="fas fa-play"></i> 继续练习
+                    </button>
+                    <button id="backToHome" class="action-btn">
+                        <i class="fas fa-home"></i> 返回首页
+                    </button>
+                </div>
+            </div>
+
+            <!-- 历史记录 -->
+            <div id="historyScreen" class="screen">
+                <div class="history-header">
+                    <h2><i class="fas fa-history"></i> 练习记录</h2>
+                    <div class="history-filters">
+                        <select id="filterDate">
+                            <option value="all">全部时间</option>
+                            <option value="today">今天</option>
+                            <option value="week">本周</option>
+                            <option value="month">本月</option>
+                        </select>
+                        <select id="filterMode">
+                            <option value="all">全部模式</option>
+                            <option value="normal">普通练习</option>
+                            <option value="challenge">挑战模式</option>
+                            <option value="exam">模拟考试</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="historyList" class="history-list">
+                    <!-- 历史记录将动态生成 -->
+                    <div class="empty-history">
+                        <i class="fas fa-clock"></i>
+                        <h3>暂无练习记录</h3>
+                        <p>完成练习后，记录将显示在这里</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设置页面 -->
+            <div id="settingsScreen" class="screen">
+                <div class="settings-header">
+                    <h2><i class="fas fa-cog"></i> 设置</h2>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-user"></i> 用户设置</h3>
+                    <div class="setting-item">
+                        <label for="studentName">学生姓名</label>
+                        <input type="text" id="studentName" placeholder="请输入姓名">
+                    </div>
+                    <div class="setting-item">
+                        <label for="dailyGoal">每日目标</label>
+                        <select id="dailyGoal">
+                            <option value="5">5题</option>
+                            <option value="10" selected>10题</option>
+                            <option value="20">20题</option>
+                            <option value="30">30题</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-volume-up"></i> 语音设置</h3>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="voiceFeedback" checked>
+                            语音反馈
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="soundEffects" checked>
+                            音效提示
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-paint-brush"></i> 界面设置</h3>
+                    <div class="setting-item">
+                        <label>主题颜色</label>
+                        <div class="theme-colors">
+                            <div class="theme-color" data-color="#4b6cb7" style="background-color: #4b6cb7;"></div>
+                            <div class="theme-color" data-color="#36D1DC" style="background-color: #36D1DC;"></div>
+                            <div class="theme-color" data-color="#FF416C" style="background-color: #FF416C;"></div>
+                            <div class="theme-color" data-color="#2ECC71" style="background-color: #2ECC71;"></div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="darkMode">
+                            深色模式
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-database"></i> 数据管理</h3>
+                    <div class="setting-item">
+                        <button id="exportData" class="settings-btn">
+                            <i class="fas fa-download"></i> 导出数据
+                        </button>
+                    </div>
+                    <div class="setting-item">
+                        <button id="clearData" class="settings-btn danger">
+                            <i class="fas fa-trash"></i> 清除所有数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 底部导航 -->
+        <footer class="app-footer">
+            <div class="footer-nav">
+                <a href="#" class="nav-item active" data-screen="home">
+                    <i class="fas fa-home"></i>
+                    <span>首页</span>
+                </a>
+                <a href="#" class="nav-item" data-screen="practice">
+                    <i class="fas fa-pencil-alt"></i>
+                    <span>练习</span>
+                </a>
+                <a href="#" class="nav-item" data-screen="test">
+                    <i class="fas fa-microphone"></i>
+                    <span>答题</span>
+                </a>
+                <a href="#" class="nav-item" data-screen="history">
+                    <i class="fas fa-history"></i>
+                    <span>记录</span>
+                </a>
+                <a href="#" class="nav-item" data-screen="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>设置</span>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 语音识别状态指示器 -->
+    <div id="voiceIndicator" class="voice-indicator">
+        <div class="indicator-content">
+            <div class="mic-icon">
+                <i class="fas fa-microphone"></i>
+            </div>
+            <div class="voice-waves">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+            <p>正在聆听...</p>
+        </div>
+    </div>
+
+    <!-- 离线提示 -->
+    <div id="offlineAlert" class="offline-alert">
+        <i class="fas fa-wifi-slash"></i>
+        <span>网络已断开，正在使用离线模式</span>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="correctSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMQAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAHAAABLwADAwMGBwgJCw0PEBIUFhgaGx0eISIlJystMDI1Nz0/QkVITE5QU1VYWlxeYWNlaGttb3FzdXh7fYCBhYeJjY+Qk5WYm5+ho6aoqqyusLK2uLq8v8DDxcfJzM7R1NfZ3d/i5Obn6ezv8fT3+v3/AAAAOUxBTUUzLjk5cgGtAAAAAAAAAAAUgCAAJAiEAAADAAABLwDn7v8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mpeg">
+    </audio>
+    
+    <audio id="incorrectSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMQAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAACBwACAgIEBQYHCAoLDQ8RExUXGRwdHyIkJigrLTAyNDc5Oz5AQ0VHSkxOUFNWWFtcXmBjZWhrbXBzdnh7fYCBhYeJjY+Qk5WYm5+ho6aoq62ws7a4u72/wMPGyMrN0NPW2Nvd3+Ll5unr7fDz9fj7/f8AAAA5TEFNRTMuOTlyAa0AAAAAAAAAABSAIAAkCHgAAAMAAAIHALB6/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/mpeg">
+    </audio>
+
+    <!-- 引入JavaScript -->
+    <script src="script.js"></script>
+    
+    <!-- Cordova/Capacitor支持 -->
+    <script>
+        // 检查是否在Cordova/PhoneGap环境中
+        if (window.cordova) {
+            document.addEventListener('deviceready', function() {
+                console.log('Cordova已加载');
+                initApp();
+            }, false);
+        } else {
+            // 直接初始化
+            window.addEventListener('load', function() {
+                setTimeout(initApp, 1000);
+            });
+        }
+    </script>
+</body>
 </html>
